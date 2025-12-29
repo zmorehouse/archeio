@@ -1,6 +1,7 @@
-# OSRS Player Stats Dashboard
+# Archeio - OSRS Player Stats Dashboard
 
 A dashboard for tracking Old School RuneScape player statistics. Built with Laravel, React, and Inertia.js.
+Named after everyones favourite [Arceeus Library Keeper](https://oldschool.runescape.wiki/w/Archeio)
 
 ## Features
 
@@ -124,6 +125,14 @@ php artisan players:fetch-stats
 POST /api/v1/players/refresh
 ```
 
+### Importing Legacy Data
+
+If you have existing player data, modify the Player_rows.csv and Snapshot_rows.csv files with your data. Then run the following :
+
+```bash
+php artisan import:legacy-data Player_rows.csv Snapshot_rows.csv
+```
+
 ## Deployment
 
 ### Laravel Cloud
@@ -202,19 +211,7 @@ php artisan migrate --force
 php artisan queue:work
 ```
 
-## Customization
-
-### Changing Skill Icons
-
-Skill icons are located in `public/images/skills/`. Replace PNG files with your own (24x24px recommended).
-
-### Styling
-
-The app uses Tailwind CSS. Customize colors and styles in:
-- `resources/css/app.css`
-- Component-level Tailwind classes
-
-### Adding New Components
+## Adding New Components
 
 1. Create component in `resources/js/components/dashboard/`
 2. Register in `resources/js/lib/component-registry.ts`
