@@ -1,6 +1,6 @@
 # Archeio - OSRS Player Stats Dashboard
 
-A dashboard for tracking Old School RuneScape player statistics. Built with Laravel, React, and Inertia.js.
+A dashboard for tracking Old School RuneScape player statistics.
 Named after everyones favourite [Arceeus Library Keeper](https://oldschool.runescape.wiki/w/Archeio)
 
 ## Features
