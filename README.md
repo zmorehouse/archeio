@@ -1,6 +1,6 @@
 # OSRS Player Stats Dashboard
 
-A beautiful, real-time dashboard for tracking Old School RuneScape player statistics. Built with Laravel, React, and Inertia.js.
+A dashboard for tracking Old School RuneScape player statistics. Built with Laravel, React, and Inertia.js.
 
 ## Features
 
