@@ -41,8 +41,9 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function PlayerSkillTrainingComponent({ playerId: _playerId, historicalStats = [] }: PlayerSkillTrainingComponentProps) {
+export function PlayerSkillTrainingComponent({ playerId, historicalStats = [] }: PlayerSkillTrainingComponentProps) {
+    // playerId is required by the interface but not used in this component
+    void playerId;
     const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
     const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
     const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
