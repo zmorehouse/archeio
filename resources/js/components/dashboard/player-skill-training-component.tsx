@@ -41,7 +41,8 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
     };
 }
 
-export function PlayerSkillTrainingComponent({ playerId: _playerId, historicalStats = [] }: PlayerSkillTrainingComponentProps) { // eslint-disable-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function PlayerSkillTrainingComponent({ playerId: _playerId, historicalStats = [] }: PlayerSkillTrainingComponentProps) {
     const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
     const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
     const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);

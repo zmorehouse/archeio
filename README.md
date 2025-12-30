@@ -128,7 +128,7 @@ To change the timezone used throughout the application:
 
 1. **Backend (PHP)**: Edit `config/app.php` and change the `timezone` setting:
    ```php
-   'timezone' => 'America/New_York', // or your preferred timezone
+   'timezone' => 'America/New_York', 
    ```
 
 2. **Frontend (JavaScript)**: Update the timezone in `resources/js/lib/timezone-utils.ts`:
