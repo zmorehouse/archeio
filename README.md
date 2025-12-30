@@ -4,16 +4,33 @@
   <h1>Archeio - OSRS Player Stats Dashboard</h1>
   
   <h3>
-    <a href="http://archeio.zmorehouse.com/">🌐 View Live Site → archeio.zmorehouse.com</a>
+    <a href="https://archeio.zmorehouse.com/">https://archeio.zmorehouse.com/</a>
   </h3>
+  A dashboard for tracking Old School RuneScape player statistics.<br/>
+Named after everyones favourite <a href="https://oldschool.runescape.wiki/w/Archeio">Arceeus Library Keeper</a>
 </div>
 
-A dashboard for tracking Old School RuneScape player statistics.
-Named after everyones favourite [Arceeus Library Keeper](https://oldschool.runescape.wiki/w/Archeio)
+## About Archeio
+Arechio is a side-project, inspired by [WiseOldMan](https://wiseoldman.net/) and [Runemetrics](https://apps.runescape.com/runemetrics/app/welcome), and looks to store, display and analyse OSRS data.
+
+If you’re familiar with the OSRS Hiscores, you’ll know there’s no historical or persistent data available. Due to the age of the platform, it only exposes current stats, ranks, and experience - once those change, the previous data is lost.
+
+Archeio addresses this by regularly fetching Hiscores data, storing it over time, and presenting it in a way that makes trends, comparisons, and long-term progress visible.
+
+It was originally built for myself and a small group of mates, focusing on group comparisons as well as individual player insights, but it’s flexible enough to be run by anyone who wants to track their own data. As such, feel free to go ballistic with the code. Setup instructions are included below if you’d like to install and run Archeio yourself.
+
+If you'd like a hand setting anything up, feel free to add me on Discord (@zoobzx)
+
+#### A couple of caveats
+
+The OSRS Hiscores API has no built-in persistence. If tracking hasn’t started yet, Archeio can’t show historical progress from before that point.
+I have created some basic excel templates if you have existing data you'd like to import into the platform. 
+
+Hiscores data is not truly real-time — stats only update once a player logs out, so Archeio is only as fresh as the data provided by the API.
 
 ## Features
 
-- **Real-time Player Stats** - Track XP, levels, and skill progress
+- **Group & Individual Player Stats** - Track XP, levels, and skill progress
 - **XP Over Time Charts** - Visualize XP gains with line and bar charts
 - **Activity Tracking** - Monitor level gains, XP milestones, and achievements
 - **Auto-refresh** - Automatically fetch latest stats from RuneScape API
@@ -46,8 +63,8 @@ Click the "Fork" button at the top of this repository to create your own copy.
 ### 2. Clone Your Fork
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/osrs-v2.git
-cd osrs-v2
+git clone https://github.com/YOUR_USERNAMEarcheio.git
+cd archeio
 ```
 
 ### 3. Install Dependencies
@@ -140,16 +157,7 @@ To change the timezone used throughout the application:
    });
    ```
 
-Common timezone values:
-- `Australia/Sydney` (AEST/AEDT)
-- `America/New_York` (EST/EDT)
-- `Europe/London` (GMT/BST)
-- `UTC` (Coordinated Universal Time)
-- `America/Los_Angeles` (PST/PDT)
-
-See the [IANA Time Zone Database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for a complete list of available timezones.
-
-## Adding Players
+## Adding Players To Track
 
 ### Via Artisan Command
 
@@ -164,9 +172,6 @@ Stats are automatically fetched, but you can manually trigger:
 ```bash
 # Fetch stats for all players
 php artisan players:fetch-stats
-
-# Or use the API endpoint
-POST /api/v1/players/refresh
 ```
 
 ### Importing Legacy Data
@@ -181,79 +186,16 @@ php artisan import:legacy-data Player_rows.csv Snapshot_rows.csv
 
 ### Laravel Cloud
 
-Laravel Cloud is the easiest way to deploy Laravel applications:
+I have chosen to use Laravel Cloud to deploy my instance. Feel free to use Forge, or another provider - though Cloud proves for a super simple deployment. 
 
 1. **Sign up** at [cloud.laravel.com](https://cloud.laravel.com)
 2. **Create a new project** and connect your GitHub repository
-3. **Configure environment variables** in the Laravel Cloud dashboard:
-   - `APP_NAME`
-   - `APP_URL` (your cloud domain)
-   - `APP_ENV=production`
-   - `APP_DEBUG=false`
-   - Database credentials (MySQL provided by Laravel Cloud)
-4. **Deploy**
+3. **Provision and attach a MySQL database to your server** (.env details will import automatically)
+4. **Update any missing .env values**
+5. **Deploy**
+6. **Connect a domain**
 
-**Note**: Make sure to enabled scheduled tasks on your environment.
-
-### Traditional Hosting (VPS/Shared Hosting)
-
-#### Requirements
-
-- PHP 8.2+ with extensions: `pdo`, `pdo_sqlite`, `mbstring`, `xml`, `curl`, `json`
-- Composer
-- Node.js 18+ and npm
-- Web server (Apache/Nginx)
-
-#### Deployment Steps
-
-1. **Upload your code** to your server (via Git, FTP, or SCP)
-
-2. **Install dependencies**:
-```bash
-composer install --optimize-autoloader --no-dev
-npm install
-npm run build
-```
-
-3. **Set up environment**:
-```bash
-cp .env.example .env
-php artisan key:generate
-```
-
-4. **Configure `.env`**:
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://yourdomain.com
-
-# Use MySQL for production
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_DATABASE=your_database
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
-5. **Run migrations**:
-```bash
-php artisan migrate --force
-```
-
-6. **Set up web server**:
-   - Point document root to `/public`
-   - Configure URL rewriting for Laravel
-
-7. **Set up cron job** (for automatic stat fetching):
-```bash
-# Add to crontab (crontab -e)
-* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
-```
-
-8. **Set up queue worker** (optional, for background jobs):
-```bash
-php artisan queue:work
-```
+**Note**: Make sure to enabled scheduled tasks on your environment, to ensure the fetch is regularly running. 
 
 ## Adding New Components
 
