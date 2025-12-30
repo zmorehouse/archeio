@@ -29,6 +29,26 @@ interface OverallRankingsComponentProps {
 type SortField = 'rank' | 'name' | 'level' | 'experience';
 type SortDirection = 'asc' | 'desc';
 
+interface SortableHeaderProps {
+    field: SortField;
+    children: React.ReactNode;
+    onSort: (field: SortField) => void;
+}
+
+function SortableHeader({ field, children, onSort }: SortableHeaderProps) {
+    return (
+        <th
+            className="cursor-pointer select-none border-b border-sidebar-border/70 px-4 py-3 text-left text-sm font-semibold hover:bg-neutral-50 dark:border-sidebar-border dark:hover:bg-neutral-800"
+            onClick={() => onSort(field)}
+        >
+            <div className="flex items-center gap-2">
+                {children}
+                <ArrowUpDown className="h-3 w-3 opacity-50" />
+            </div>
+        </th>
+    );
+}
+
 export function OverallRankingsComponent({
     players,
 }: OverallRankingsComponentProps) {
@@ -70,24 +90,6 @@ export function OverallRankingsComponent({
             return sortDirection === 'asc' ? comparison : -comparison;
         });
 
-    const SortableHeader = ({
-        field,
-        children,
-    }: {
-        field: SortField;
-        children: React.ReactNode;
-    }) => (
-        <th
-            className="cursor-pointer select-none border-b border-sidebar-border/70 px-4 py-3 text-left text-sm font-semibold hover:bg-neutral-50 dark:border-sidebar-border dark:hover:bg-neutral-800"
-            onClick={() => handleSort(field)}
-        >
-            <div className="flex items-center gap-2">
-                {children}
-                <ArrowUpDown className="h-3 w-3 opacity-50" />
-            </div>
-        </th>
-    );
-
     return (
         <div className="h-full flex flex-col">
             <div className="mb-3 flex items-center justify-between">
@@ -109,11 +111,11 @@ export function OverallRankingsComponent({
                 <table className="w-full text-sm min-w-[500px]">
                     <thead>
                         <tr>
-                            <SortableHeader field="rank">Rank</SortableHeader>
-                            <SortableHeader field="name">Player</SortableHeader>
-                            <SortableHeader field="level">Level</SortableHeader>
-                            <SortableHeader field="experience">EXP</SortableHeader>
-                            <SortableHeader field="rank">Global Rank</SortableHeader>
+                            <SortableHeader field="rank" onSort={handleSort}>Rank</SortableHeader>
+                            <SortableHeader field="name" onSort={handleSort}>Player</SortableHeader>
+                            <SortableHeader field="level" onSort={handleSort}>Level</SortableHeader>
+                            <SortableHeader field="experience" onSort={handleSort}>EXP</SortableHeader>
+                            <SortableHeader field="rank" onSort={handleSort}>Global Rank</SortableHeader>
                         </tr>
                     </thead>
                     <tbody>

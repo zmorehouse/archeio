@@ -143,10 +143,10 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-semibold">Skill Training Distribution</h3>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 w-full sm:w-auto">
                         <button
                             onClick={() => setPeriod('daily')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'daily'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -156,7 +156,7 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                         </button>
                         <button
                             onClick={() => setPeriod('weekly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'weekly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -166,7 +166,7 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                         </button>
                         <button
                             onClick={() => setPeriod('monthly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'monthly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -176,10 +176,10 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                         </button>
                     </div>
                     <span className="hidden sm:inline text-neutral-400 dark:text-neutral-600">|</span>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 w-full sm:w-auto">
                         <button
                             onClick={() => setChartType('pie')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 chartType === 'pie'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -189,7 +189,7 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                         </button>
                         <button
                             onClick={() => setChartType('bar')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 chartType === 'bar'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -206,7 +206,7 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                     <div className="flex-1 flex items-center gap-4 overflow-hidden relative">
                         {/* Left-side legend for top 16 */}
                         <div className="flex-shrink-0 space-y-1.5 py-2 max-h-full overflow-y-auto">
-                            {skillPercentages.map(({ skill, xp, percentage }, index) => {
+                            {skillPercentages.map(({ skill, percentage }) => {
                                 const isHovered = hoveredSlice === skill;
                                 return (
                                     <div
@@ -238,9 +238,9 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                         {/* Pie chart */}
                         <div className="flex-1 flex items-center justify-end relative">
                             <svg viewBox="0 0 250 250" className="w-full max-w-[400px] h-auto">
-                                {pieSlices.map((slice, index) => {
+                                {pieSlices.map((slice) => {
                                     const isHovered = hoveredSlice === slice.skill;
-                                    const isLarge = index < 2 && slice.percentage > 5; // Show text on top 2 if > 5%
+                                    const isLarge = slice.percentage > 10; // Show text on any slice > 10%
                                     const midAngle = (slice.startAngle + slice.endAngle) / 2;
                                     const labelRadius = radius * 0.7;
                                     const labelX = cx + labelRadius * Math.cos((midAngle - 90) * Math.PI / 180);
@@ -265,16 +265,16 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                                                 <>
                                                     <image
                                                         href={getSkillIconPath(slice.skill)}
-                                                        x={labelX - 6}
-                                                        y={labelY - 10}
-                                                        width="12"
-                                                        height="12"
+                                                        x={labelX - 9}
+                                                        y={labelY - 5}
+                                                        width="10"
+                                                        height="10"
                                                         className="pointer-events-none"
                                                     />
                                                     <text
-                                                        x={labelX}
-                                                        y={labelY + 6}
-                                                        textAnchor="middle"
+                                                        x={labelX + 6}
+                                                        y={labelY + 2}
+                                                        textAnchor="start"
                                                         dominantBaseline="middle"
                                                         className="text-[9px] font-semibold fill-white pointer-events-none"
                                                         style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
@@ -292,7 +292,6 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                             {hoveredSlice && (() => {
                                 const hoveredData = allSkillPercentages.find(s => s.skill === hoveredSlice);
                                 if (!hoveredData) return null;
-                                const index = skillPercentages.findIndex(s => s.skill === hoveredSlice);
                                 return (
                                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded px-3 py-2 shadow-lg z-10 pointer-events-none whitespace-nowrap">
                                         <div className="flex items-center gap-2 text-xs">
@@ -316,7 +315,7 @@ export function SkillTrainingPieComponent({ players, historicalStats = {} }: Ski
                     </div>
                 ) : (
                     <div className="flex-1 space-y-3 overflow-y-auto">
-                        {allSkillPercentages.map(({ skill, xp, percentage }, index) => (
+                        {allSkillPercentages.map(({ skill, xp, percentage }) => (
                             <div key={skill} className="space-y-1">
                                 <div className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2">

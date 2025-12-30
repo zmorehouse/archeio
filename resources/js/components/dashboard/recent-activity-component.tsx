@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { formatXP, getSkillIconPath } from '@/lib/runescape-utils';
+import { getSkillIconPath } from '@/lib/runescape-utils';
 
 interface Skill {
     rank: number;

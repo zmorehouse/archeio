@@ -10,6 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarSeparator,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type SharedData } from '@/types';
@@ -21,14 +22,15 @@ import { ActivityLedger } from '@/components/activity-ledger';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
+    const { state } = useSidebar();
     const page = usePage<SharedData>();
-    const players = page.props.players || [];
-    const historicalStats = (page.props.historicalStats as Record<number, Array<{
+    const players = useMemo(() => page.props.players || [], [page.props.players]);
+    const historicalStats = useMemo(() => (page.props.historicalStats as Record<number, Array<{
         fetched_at: string;
         overall_experience: number;
         overall_level: number;
         skills: Record<string, { rank: number; level: number; experience: number }>;
-    }>>) || {};
+    }>>) || {}, [page.props.historicalStats]);
 
     const activityEvents = useMemo(() => {
         // Ensure historicalStats is an object and all values are arrays
@@ -127,12 +129,14 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <SidebarGroup className="hidden md:block">
-                    <SidebarGroupLabel>Recent Activity</SidebarGroupLabel>
-                    <div className="px-2 pb-2">
-                        <ActivityLedger events={activityEvents} compact={true} maxItems={3} />
-                    </div>
-                </SidebarGroup>
+                {state === "expanded" && (
+                    <SidebarGroup className="hidden md:block">
+                        <SidebarGroupLabel>Recent Activity</SidebarGroupLabel>
+                        <div className="px-2 pb-2">
+                            <ActivityLedger events={activityEvents} compact={true} maxItems={3} />
+                        </div>
+                    </SidebarGroup>
+                )}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

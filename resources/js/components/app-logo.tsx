@@ -10,6 +10,9 @@ export default function AppLogo() {
                 <span className="mb-0.5 truncate leading-tight font-semibold text-lg">
                     Archeio
                 </span>
+                <span className="text-xs text-muted-foreground">
+                    v1.0.1
+                </span>
             </div>
         </>
     );

@@ -47,10 +47,9 @@ export function detectActivityEvents(
         // Track previous values to detect changes
         let previousStat: HistoricalStat | null = null;
 
-        sortedStats.forEach((currentStat, index) => {
+        sortedStats.forEach((currentStat) => {
             if (previousStat) {
                 const currentDate = new Date(currentStat.fetched_at);
-                const previousDate = new Date(previousStat.fetched_at);
 
                 // Detect level gains in skills
                 Object.keys(currentStat.skills).forEach(skillName => {

@@ -1,4 +1,4 @@
-import { detectActivityEvents, ActivityEvent } from '@/lib/activity-detector';
+import { detectActivityEvents } from '@/lib/activity-detector';
 import { ActivityLedger } from '@/components/activity-ledger';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';

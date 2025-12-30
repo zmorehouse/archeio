@@ -31,30 +31,30 @@ export const NON_COMBAT_SKILLS = SKILL_ORDER.filter(skill => skill !== 'Overall'
 
 // Standardized color palette for skills (excluding Overall)
 export const SKILL_COLORS: Record<string, string> = {
-    'Attack': '#ef4444',           // Red
-    'Defence': '#3b82f6',          // Blue
-    'Strength': '#f97316',         // Orange
-    'Hitpoints': '#10b981',        // Green
-    'Ranged': '#84cc16',           // Lime
-    'Prayer': '#fbbf24',           // Yellow
-    'Magic': '#8b5cf6',            // Purple
-    'Cooking': '#f59e0b',          // Amber
-    'Woodcutting': '#16a34a',      // Emerald
-    'Fletching': '#22c55e',        // Green
-    'Fishing': '#06b6d4',          // Cyan
-    'Firemaking': '#f97316',       // Orange
-    'Crafting': '#ec4899',         // Pink
-    'Smithing': '#64748b',         // Slate
-    'Mining': '#78716c',           // Stone
-    'Herblore': '#14b8a6',         // Teal
-    'Agility': '#0ea5e9',          // Sky
-    'Thieving': '#a855f7',         // Purple
-    'Slayer': '#dc2626',           // Red
-    'Farming': '#65a30d',          // Lime
-    'Runecrafting': '#6366f1',     // Indigo
-    'Hunter': '#ca8a04',           // Yellow
-    'Construction': '#c2410c',     // Orange
-    'Sailing': '#0284c7',          // Sky Blue
+    'Attack': '#db2016',           
+    'Defence': '#629396',          
+    'Strength': '#e35f1e',         
+    'Hitpoints': '#ff0051',        
+    'Ranged': '#1b590c',           
+    'Prayer': '#fbbf24',           
+    'Magic': '#161eab',           
+    'Cooking': '#f5ce0b',          
+    'Woodcutting': '#16a34a',     
+    'Fletching': '#62d17a',        
+    'Fishing': '#06b6d4',         
+    'Firemaking': '#f97316',      
+    'Crafting': '#7d502a',         
+    'Smithing': '#3b4452',         
+    'Mining': '#78716c',           
+    'Herblore': '#4eb332',        
+    'Agility': '#1c1c1c',         
+    'Thieving': '#a855f7',         
+    'Slayer': '#cfc4b6',          
+    'Farming': '#385908',         
+    'Runecrafting': '#878787',     
+    'Hunter': '#755510',           
+    'Construction': '#694528',     
+    'Sailing': '#65bae6',          
 };
 
 export function getSkillColor(skillName: string): string {

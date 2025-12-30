@@ -1,4 +1,4 @@
-import { formatXP, getSkillIconPath, SKILL_ORDER, COMBAT_SKILLS } from '@/lib/runescape-utils';
+import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel } from '@/lib/runescape-utils';
 
 interface Skill {
     rank: number;
@@ -90,7 +90,14 @@ export function PlayerLevelsComponent({ skills }: PlayerLevelsComponentProps) {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs text-neutral-500 dark:text-neutral-400">XP</span>
-                                    <span className="text-sm font-medium">{formatXP(skill.experience)}</span>
+                                    <div className="text-right">
+                                        <div className="text-sm font-medium">{formatXP(skill.experience)}</div>
+                                        {skill.level < 99 && (
+                                            <div className="text-[10px] text-neutral-400 dark:text-neutral-500">
+                                                +{formatXP(xpForNextLevel(skill.experience))} to next
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 {skill.rank > 0 && (
                                     <div className="flex items-center justify-between">

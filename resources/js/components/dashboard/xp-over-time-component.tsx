@@ -240,10 +240,10 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-semibold">XP Over Time</h3>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 w-full sm:w-auto">
                         <button
                             onClick={() => setChartType('line')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 chartType === 'line'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -253,7 +253,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                         </button>
                         <button
                             onClick={() => setChartType('bar')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 chartType === 'bar'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -263,10 +263,10 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                         </button>
                     </div>
                     <span className="hidden sm:inline text-neutral-400 dark:text-neutral-600">|</span>
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 w-full sm:w-auto">
                         <button
                             onClick={() => setPeriod('daily')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'daily'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -276,7 +276,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                         </button>
                         <button
                             onClick={() => setPeriod('weekly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'weekly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -286,7 +286,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                         </button>
                         <button
                             onClick={() => setPeriod('monthly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'monthly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -296,7 +296,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                         </button>
                         <button
                             onClick={() => setPeriod('6month')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === '6month'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -317,7 +317,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2 pr-8">
                                 <DialogTitle>Select Players</DialogTitle>
                                 <div className="flex gap-2">
                                     <Button
@@ -338,6 +338,9 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                                     </Button>
                                 </div>
                             </div>
+                            <p className="text-sm text-muted-foreground mt-2">
+                                Select which players should be included in the bar graph
+                            </p>
                         </DialogHeader>
                         <div className="space-y-2 py-4">
                             {players.map((player) => (
@@ -449,8 +452,6 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                                                     const [x, y] = point.split(',').map(Number);
                                                     const dataPoint = chartData[index];
                                                     const xp = dataPoint.players[playerId] || 0;
-                                                    const periodDays = (dataPoint.period.endDate.getTime() - dataPoint.period.startDate.getTime()) / (1000 * 60 * 60 * 24);
-                                                    const avgXp = periodDays > 0 ? xp / periodDays : 0;
                                                     
                                                     return (
                                                         <circle
@@ -497,9 +498,6 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                                                 const barY = padding.top + graphHeight - barHeight;
                                                 const color = getPlayerColor(playerId);
                                                 barIndex++;
-
-                                                const periodDays = (point.period.endDate.getTime() - point.period.startDate.getTime()) / (1000 * 60 * 60 * 24);
-                                                const avgXp = periodDays > 0 ? xp / periodDays : 0;
                                                 
                                                 return (
                                                     <rect

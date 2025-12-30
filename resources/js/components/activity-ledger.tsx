@@ -33,38 +33,46 @@ export function ActivityLedger({ events, maxItems = 5, compact = false }: Activi
         // Only animate on initial mount or when events array changes (not when maxItems increases)
         if (isInitialMountRef.current || (eventsChanged && previousMaxItemsRef.current === 0)) {
             // Reset and animate in items one at a time
-            setVisibleItems(0);
             const timer = setTimeout(() => {
-                events.slice(0, maxItems).forEach((_, index) => {
-                    setTimeout(() => {
-                        setVisibleItems(prev => Math.max(prev, index + 1));
-                    }, index * 100);
-                });
-            }, 100);
+                setVisibleItems(0);
+                setTimeout(() => {
+                    events.slice(0, maxItems).forEach((_, index) => {
+                        setTimeout(() => {
+                            setVisibleItems(prev => Math.max(prev, index + 1));
+                        }, index * 100);
+                    });
+                }, 0);
+            }, 0);
             previousMaxItemsRef.current = maxItems;
             previousEventsRef.current = events;
             isInitialMountRef.current = false;
             return () => clearTimeout(timer);
         } else if (maxItems > previousMaxItemsRef.current) {
             // When loading more, just show all items immediately without animation
-            setVisibleItems(maxItems);
+            setTimeout(() => {
+                setVisibleItems(maxItems);
+            }, 0);
             previousMaxItemsRef.current = maxItems;
         } else if (eventsChanged) {
             // If events changed but maxItems didn't increase, re-animate
-            setVisibleItems(0);
             const timer = setTimeout(() => {
-                events.slice(0, maxItems).forEach((_, index) => {
-                    setTimeout(() => {
-                        setVisibleItems(prev => Math.max(prev, index + 1));
-                    }, index * 100);
-                });
-            }, 100);
+                setVisibleItems(0);
+                setTimeout(() => {
+                    events.slice(0, maxItems).forEach((_, index) => {
+                        setTimeout(() => {
+                            setVisibleItems(prev => Math.max(prev, index + 1));
+                        }, index * 100);
+                    });
+                }, 0);
+            }, 0);
             previousMaxItemsRef.current = maxItems;
             previousEventsRef.current = events;
             return () => clearTimeout(timer);
         } else {
             // If maxItems decreased or stayed same, just update visible items
-            setVisibleItems(maxItems);
+            setTimeout(() => {
+                setVisibleItems(maxItems);
+            }, 0);
             previousMaxItemsRef.current = maxItems;
         }
     }, [events, maxItems]);

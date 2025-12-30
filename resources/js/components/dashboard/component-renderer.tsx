@@ -17,7 +17,7 @@ import { AllActivityLedgerComponent } from './all-activity-ledger-component';
 
 interface ComponentRendererProps {
     componentId: string;
-    props?: Record<string, any>;
+    props?: Record<string, unknown>;
 }
 
 export function ComponentRenderer({

@@ -1,4 +1,4 @@
-import { componentRegistry, type LayoutConfig } from '@/lib/component-registry';
+import { type LayoutConfig } from '@/lib/component-registry';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
@@ -12,7 +12,7 @@ interface DashboardGridProps {
 
 export function DashboardGrid({
     layout,
-    onLayoutChange,
+    onLayoutChange: _onLayoutChange, // eslint-disable-line @typescript-eslint/no-unused-vars
     children,
     className,
     columnCount = 3,

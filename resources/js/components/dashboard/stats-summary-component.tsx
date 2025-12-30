@@ -1,5 +1,5 @@
 interface StatsSummaryComponentProps {
-    players?: any[];
+    players?: unknown[];
 }
 
 export function StatsSummaryComponent({ players = [] }: StatsSummaryComponentProps) {

@@ -44,22 +44,26 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [refreshProgress, setRefreshProgress] = useState(0);
+    const [windowWidth, setWindowWidth] = useState(() => {
+        if (typeof window === 'undefined') return 1920;
+        return window.innerWidth;
+    });
     const [columnCount, setColumnCount] = useState<1 | 2 | 3>(() => {
-        if (typeof window === 'undefined') return 3;
+        if (typeof window === 'undefined') return 2;
         
         const width = window.innerWidth;
-        // iPhone sizes (max 1 column)
-        if (width < 768) {
+        // Screens smaller than 1300px: force 1 column
+        if (width < 1300) {
             return 1;
         }
-        // iPad sizes (max 2 columns)
-        if (width < 1024) {
+        
+        // 1300px - 1919px: default to 2, or use saved value
+        if (width < 1920) {
             const saved = localStorage.getItem('dashboard-column-count');
-            const savedCount = saved ? parseInt(saved) as 1 | 2 | 3 : 2;
-            return Math.min(savedCount, 2) as 1 | 2;
+            return saved ? (parseInt(saved) as 1 | 2 | 3) : 2;
         }
         
-        // Desktop: default to 3, or use saved value
+        // Desktop 1920px and above: default to 3, or use saved value
         const saved = localStorage.getItem('dashboard-column-count');
         return saved ? (parseInt(saved) as 1 | 2 | 3) : 3;
     });
@@ -68,24 +72,36 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
-            if (width < 768) {
-                // iPhone: force 1 column
+            setWindowWidth(width);
+            if (width < 1300) {
+                // Screens smaller than 1300px: force 1 column
                 if (columnCount !== 1) {
                     setColumnCount(1);
                 }
-            } else if (width < 1024) {
-                // iPad: max 2 columns
-                if (columnCount === 3) {
-                    setColumnCount(2);
+            } else if (width < 1920) {
+                // 1300px - 1919px: default to 2 if coming from < 1300px, otherwise allow user choice
+                if (columnCount === 1) {
+                    // Was forced to 1, now default to 2
+                    const saved = localStorage.getItem('dashboard-column-count');
+                    setColumnCount(saved ? (parseInt(saved) as 1 | 2 | 3) : 2);
                 }
+                // Otherwise, keep user's choice (can be 1, 2, or 3)
             } else {
-                // Desktop: allow 3 columns, default to 3 if not set
-                if (columnCount === 1 && width >= 1024) {
+                // Desktop 1920px and above: default to 3 if coming from lower width, otherwise allow user choice
+                if (columnCount === 1) {
+                    // Was forced to 1, now default to 3
+                    const saved = localStorage.getItem('dashboard-column-count');
+                    setColumnCount(saved ? (parseInt(saved) as 1 | 2 | 3) : 3);
+                } else if (columnCount === 2) {
+                    // Was at 2, check if we should default to 3
                     const saved = localStorage.getItem('dashboard-column-count');
                     if (!saved) {
+                        // No saved preference, default to 3
                         setColumnCount(3);
                     }
+                    // Otherwise keep saved preference
                 }
+                // If already at 3, keep it
             }
         };
 
@@ -161,9 +177,11 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
         const hasRefreshed = sessionStorage.getItem('dashboard-auto-refreshed');
         if (!hasRefreshed) {
             sessionStorage.setItem('dashboard-auto-refreshed', 'true');
-            handleForceRefresh(true); // true = auto refresh, no notification
+            setTimeout(() => {
+                handleForceRefresh(true); // true = auto refresh, no notification
+            }, 0);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, []); // Only run once on mount
 
     return (
@@ -208,6 +226,7 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
                                     localStorage.setItem('dashboard-column-count', '1');
                                 }}
                                 title="1 Column"
+                                disabled={windowWidth < 1300}
                             >
                                 <LayoutGrid className="h-4 w-4" />
                             </Button>
@@ -232,6 +251,7 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
                                     localStorage.setItem('dashboard-column-count', '3');
                                 }}
                                 title="3 Columns"
+                                disabled={false}
                             >
                                 <Columns3 className="h-4 w-4" />
                             </Button>

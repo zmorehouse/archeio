@@ -32,34 +32,6 @@ interface Player {
     name: string;
 }
 
-const SKILL_ORDER = [
-    'Overall',
-    'Attack',
-    'Defence',
-    'Strength',
-    'Hitpoints',
-    'Ranged',
-    'Prayer',
-    'Magic',
-    'Cooking',
-    'Woodcutting',
-    'Fletching',
-    'Fishing',
-    'Firemaking',
-    'Crafting',
-    'Smithing',
-    'Mining',
-    'Herblore',
-    'Agility',
-    'Thieving',
-    'Slayer',
-    'Farming',
-    'Runecrafting',
-    'Hunter',
-    'Construction',
-    'Sailing',
-];
-
 interface PlayerProps {
     player: Player;
     stats: PlayerStats | null;
@@ -79,74 +51,33 @@ export default function PlayerPage({ player, stats, playerHistoricalStats = [] }
         },
     ];
 
-    const formatNumber = (num: number | null | undefined): string => {
-        if (num === null || num === undefined || num === -1) return 'N/A';
-        return num.toLocaleString();
-    };
-
-    const formatExperience = (exp: number | null | undefined): string => {
-        if (exp === null || exp === undefined || exp === 0) return 'N/A';
-        if (exp >= 1_000_000_000) return `${(exp / 1_000_000_000).toFixed(2)}B`;
-        if (exp >= 1_000_000) return `${(exp / 1_000_000).toFixed(2)}M`;
-        if (exp >= 1_000) return `${(exp / 1_000).toFixed(2)}K`;
-        return exp.toLocaleString();
-    };
-
-    if (!stats) {
-        return (
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title={player.name} />
-                <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                    <div className="rounded-xl border border-sidebar-border/70 bg-white p-6 dark:border-sidebar-border dark:bg-neutral-900">
-                        <h1 className="mb-4 text-3xl font-bold">{player.name}</h1>
-                        <p className="text-neutral-500 dark:text-neutral-400">
-                            No statistics available yet. Stats will appear here once they are fetched.
-                        </p>
-                    </div>
-                </div>
-            </AppLayout>
-        );
-    }
-
-    const skills = SKILL_ORDER.map((skillName) => ({
-        name: skillName,
-        ...stats.skills[skillName],
-    }));
-
-    const activities = Object.entries(stats.activities)
-        .filter(([_, activity]) => activity.score > 0 || activity.rank > 0)
-        .map(([name, activity]) => ({
-            name,
-            ...activity,
-        }))
-        .sort((a, b) => {
-            // Sort by score descending, then by name
-            if (b.score !== a.score) return b.score - a.score;
-            return a.name.localeCompare(b.name);
-        });
-
+    // All hooks must be called before any conditional returns
     const { layout, toggleComponent, reorderComponents, updateLayout, resetLayout } =
         useDashboardLayout('player', playerComponentRegistry);
     
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [refreshProgress, setRefreshProgress] = useState(0);
+    const [windowWidth, setWindowWidth] = useState(() => {
+        if (typeof window === 'undefined') return 1920;
+        return window.innerWidth;
+    });
     const [columnCount, setColumnCount] = useState<1 | 2 | 3>(() => {
-        if (typeof window === 'undefined') return 3;
+        if (typeof window === 'undefined') return 2;
         
         const width = window.innerWidth;
-        // iPhone sizes (max 1 column)
-        if (width < 768) {
+        // Screens smaller than 1300px: force 1 column
+        if (width < 1300) {
             return 1;
         }
-        // iPad sizes (max 2 columns)
-        if (width < 1024) {
+        
+        // 1300px - 1919px: default to 2, or use saved value
+        if (width < 1920) {
             const saved = localStorage.getItem('player-page-column-count');
-            const savedCount = saved ? parseInt(saved) as 1 | 2 | 3 : 2;
-            return Math.min(savedCount, 2) as 1 | 2;
+            return saved ? (parseInt(saved) as 1 | 2 | 3) : 2;
         }
         
-        // Desktop: default to 3, or use saved value
+        // Desktop 1920px and above: default to 3, or use saved value
         const saved = localStorage.getItem('player-page-column-count');
         return saved ? (parseInt(saved) as 1 | 2 | 3) : 3;
     });
@@ -155,24 +86,36 @@ export default function PlayerPage({ player, stats, playerHistoricalStats = [] }
     useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
-            if (width < 768) {
-                // iPhone: force 1 column
+            setWindowWidth(width);
+            if (width < 1300) {
+                // Screens smaller than 1300px: force 1 column
                 if (columnCount !== 1) {
                     setColumnCount(1);
                 }
-            } else if (width < 1024) {
-                // iPad: max 2 columns
-                if (columnCount === 3) {
-                    setColumnCount(2);
+            } else if (width < 1920) {
+                // 1300px - 1919px: default to 2 if coming from < 1300px, otherwise allow user choice
+                if (columnCount === 1) {
+                    // Was forced to 1, now default to 2
+                    const saved = localStorage.getItem('player-page-column-count');
+                    setColumnCount(saved ? (parseInt(saved) as 1 | 2 | 3) : 2);
                 }
+                // Otherwise, keep user's choice (can be 1, 2, or 3)
             } else {
-                // Desktop: allow 3 columns, default to 3 if not set
-                if (columnCount === 1 && width >= 1024) {
+                // Desktop 1920px and above: default to 3 if coming from lower width, otherwise allow user choice
+                if (columnCount === 1) {
+                    // Was forced to 1, now default to 3
+                    const saved = localStorage.getItem('player-page-column-count');
+                    setColumnCount(saved ? (parseInt(saved) as 1 | 2 | 3) : 3);
+                } else if (columnCount === 2) {
+                    // Was at 2, check if we should default to 3
                     const saved = localStorage.getItem('player-page-column-count');
                     if (!saved) {
+                        // No saved preference, default to 3
                         setColumnCount(3);
                     }
+                    // Otherwise keep saved preference
                 }
+                // If already at 3, keep it
             }
         };
 
@@ -207,7 +150,7 @@ export default function PlayerPage({ player, stats, playerHistoricalStats = [] }
                 throw new Error('Failed to refresh');
             }
 
-            const data = await response.json();
+            await response.json();
             
             // Simulate progress
             const progressInterval = setInterval(() => {
@@ -283,6 +226,7 @@ export default function PlayerPage({ player, stats, playerHistoricalStats = [] }
                                         localStorage.setItem('player-page-column-count', '1');
                                     }}
                                     title="1 Column"
+                                    disabled={windowWidth < 1300}
                                 >
                                     <LayoutGrid className="h-4 w-4" />
                                 </Button>
@@ -307,6 +251,7 @@ export default function PlayerPage({ player, stats, playerHistoricalStats = [] }
                                         localStorage.setItem('player-page-column-count', '3');
                                     }}
                                     title="3 Columns"
+                                    disabled={false}
                                 >
                                     <Columns3 className="h-4 w-4" />
                                 </Button>

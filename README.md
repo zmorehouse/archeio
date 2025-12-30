@@ -1,4 +1,12 @@
-# Archeio - OSRS Player Stats Dashboard
+<div align="center">
+  <img src="public/logo.png" alt="Archeio Logo" width="120" />
+  
+  <h1>Archeio - OSRS Player Stats Dashboard</h1>
+  
+  <h3>
+    <a href="http://archeio.zmorehouse.com/">🌐 View Live Site → archeio.zmorehouse.com</a>
+  </h3>
+</div>
 
 A dashboard for tracking Old School RuneScape player statistics.
 Named after everyones favourite [Arceeus Library Keeper](https://oldschool.runescape.wiki/w/Archeio)
@@ -70,6 +78,11 @@ Edit `.env` and set:
 APP_NAME="Your OSRS Dashboard"
 APP_URL=http://localhost:8000
 
+# Timezone (defaults to UTC, but the app displays times in AEST/AEDT)
+# To change the timezone, update config/app.php 'timezone' setting
+# Common timezones: 'Australia/Sydney', 'America/New_York', 'Europe/London', 'UTC'
+APP_TIMEZONE=UTC
+
 # Database (SQLite is default)
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
@@ -104,6 +117,37 @@ npm run build
 ```bash
 php artisan serve
 ```
+
+## Timezone Configuration
+
+The application displays dates and times in **AEST (Australian Eastern Standard Time)** / **AEDT (Australian Eastern Daylight Time)** by default. This is configured in the frontend code to use the `Australia/Sydney` timezone.
+
+### Changing the Timezone
+
+To change the timezone used throughout the application:
+
+1. **Backend (PHP)**: Edit `config/app.php` and change the `timezone` setting:
+   ```php
+   'timezone' => 'America/New_York', // or your preferred timezone
+   ```
+
+2. **Frontend (JavaScript)**: Update the timezone in `resources/js/lib/timezone-utils.ts`:
+   ```typescript
+   // Change 'Australia/Sydney' to your preferred timezone
+   const formatter = new Intl.DateTimeFormat('en-US', {
+       timeZone: 'America/New_York', // Change this
+       // ...
+   });
+   ```
+
+Common timezone values:
+- `Australia/Sydney` (AEST/AEDT)
+- `America/New_York` (EST/EDT)
+- `Europe/London` (GMT/BST)
+- `UTC` (Coordinated Universal Time)
+- `America/Los_Angeles` (PST/PDT)
+
+See the [IANA Time Zone Database](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for a complete list of available timezones.
 
 ## Adding Players
 

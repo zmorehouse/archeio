@@ -1,4 +1,4 @@
-import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel, xpToReachLevel, COMBAT_SKILLS } from '@/lib/runescape-utils';
+import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel, xpToReachLevel } from '@/lib/runescape-utils';
 
 interface Skill {
     rank: number;
@@ -22,7 +22,7 @@ interface PlayerGeneralStatsComponentProps {
     }>;
 }
 
-export function PlayerGeneralStatsComponent({ skills, activities = {}, historicalStats = [] }: PlayerGeneralStatsComponentProps) {
+export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerGeneralStatsComponentProps) {
     // Find closest to next level
     let closestNextLevel: { skill: string; currentLevel: number; nextLevel: number; xpRemaining: number } | null = null;
     let minXpRemaining = Infinity;
@@ -123,8 +123,9 @@ export function PlayerGeneralStatsComponent({ skills, activities = {}, historica
         .sort((a, b) => a.xpTo99 - b.xpTo99)
         .slice(0, 5);
 
-    // Calculate combat level
-    const combatLevel = (() => {
+    // Calculate combat level (currently unused but may be needed in future)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _combatLevel = (() => {
         if (!skills.Attack || !skills.Strength || !skills.Defence || !skills.Hitpoints || 
             !skills.Ranged || !skills.Prayer || !skills.Magic) {
             return null;

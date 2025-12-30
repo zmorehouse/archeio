@@ -129,7 +129,7 @@ export function useDashboardLayout(pageType: string = 'dashboard', registry: Com
                 return { items: newItems, enabled: newEnabled };
             });
         },
-        [updateLayout],
+        [updateLayout, registry],
     );
 
     const updateItemLayout = useCallback(

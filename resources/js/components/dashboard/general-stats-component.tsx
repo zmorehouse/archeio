@@ -1,4 +1,4 @@
-import { formatNumber, formatXP, NON_COMBAT_SKILLS, COMBAT_SKILLS, xpForNextLevel } from '@/lib/runescape-utils';
+import { formatXP, NON_COMBAT_SKILLS, COMBAT_SKILLS, xpForNextLevel } from '@/lib/runescape-utils';
 
 interface Skill {
     rank: number;
@@ -94,27 +94,6 @@ export function GeneralStatsComponent({ players }: GeneralStatsComponentProps) {
     avgLevels.sort((a, b) => b.avgLevel - a.avgLevel);
     const highestAvg = avgLevels[0];
 
-    // Calculate total XP difference between top 2 players
-    const overallTotals = players
-        .map((player) => ({
-            player,
-            totalXP: player.skills?.Overall?.experience || 0,
-        }))
-        .sort((a, b) => b.totalXP - a.totalXP);
-    const xpDifference = overallTotals.length >= 2
-        ? overallTotals[0].totalXP - overallTotals[1].totalXP
-        : 0;
-    const leader = overallTotals[0];
-    const second = overallTotals[1];
-
-    // Calculate combined totals
-    const combinedLevels = players.reduce((sum, player) => {
-        return sum + (player.skills?.Overall?.level || 0);
-    }, 0);
-
-    const combinedXP = players.reduce((sum, player) => {
-        return sum + (player.skills?.Overall?.experience || 0);
-    }, 0);
 
     const stats: Array<{ label: string; value: string }> = [];
 

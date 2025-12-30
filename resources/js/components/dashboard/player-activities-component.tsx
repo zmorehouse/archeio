@@ -16,7 +16,7 @@ export function PlayerActivitiesComponent({
     };
 
     const activityList = Object.entries(activities)
-        .filter(([_, activity]) => activity.score > 0 || activity.rank > 0)
+        .filter(([, activity]) => activity.score > 0 || activity.rank > 0)
         .map(([name, activity]) => ({
             name,
             ...activity,

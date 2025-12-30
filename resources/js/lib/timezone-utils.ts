@@ -5,13 +5,6 @@
 export function getStartOfTodaySydney(): Date {
     const now = new Date();
     
-    // Get current date in Sydney timezone (YYYY-MM-DD format)
-    const sydneyDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Australia/Sydney' });
-    const [year, month, day] = sydneyDateStr.split('-').map(Number);
-    
-    // Create a date string for midnight in Sydney
-    const sydneyMidnightStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T00:00:00`;
-    
     // Use Intl.DateTimeFormat to get the timezone offset
     // Create a formatter for Sydney timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -33,10 +26,6 @@ export function getStartOfTodaySydney(): Date {
     
     // Calculate milliseconds since midnight in Sydney
     const msSinceMidnight = (sydneyHour * 3600 + sydneyMinute * 60 + sydneySecond) * 1000;
-    
-    // Get the UTC timestamp that corresponds to midnight in Sydney
-    // We'll create a date object and adjust it
-    const tempDate = new Date(sydneyMidnightStr);
     
     // Calculate the offset: what time is it in Sydney vs what time is it locally
     // Get a reference point: what is "now" in Sydney vs "now" locally

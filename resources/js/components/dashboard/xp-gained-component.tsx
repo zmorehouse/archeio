@@ -168,10 +168,10 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="text-lg font-semibold">XP Gained</h3>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="flex gap-1 flex-wrap">
+                    <div className="flex gap-1 w-full sm:w-auto">
                         <button
                             onClick={() => setPeriod('daily')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'daily'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -181,7 +181,7 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
                         </button>
                         <button
                             onClick={() => setPeriod('weekly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'weekly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -191,7 +191,7 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
                         </button>
                         <button
                             onClick={() => setPeriod('monthly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'monthly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -201,7 +201,7 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
                         </button>
                         <button
                             onClick={() => setPeriod('yearly')}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'yearly'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -214,7 +214,7 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
                                 setPeriod('custom');
                                 setDatePickerOpen(true);
                             }}
-                            className={`rounded px-3 py-1 text-xs transition-colors ${
+                            className={`flex-1 sm:flex-none rounded px-3 py-1 text-xs transition-colors ${
                                 period === 'custom'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
@@ -254,7 +254,7 @@ export function XpGainedComponent({ players, historicalStats = {} }: XpGainedCom
                                     </div>
                                     <div className="h-6 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800 relative flex">
                                         {skillEntries.length > 0 ? (
-                                            skillEntries.map(([skillName, xpGained], index) => {
+                                            skillEntries.map(([skillName, xpGained]) => {
                                                 const skillPercentage = total > 0 ? (xpGained / total) * 100 : 0;
                                                 const isHovered = hoveredSegment?.playerId === player.id && hoveredSegment?.skill === skillName;
                                                 const showIcon = skillPercentage >= 8;
