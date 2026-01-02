@@ -1,4 +1,5 @@
 import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel } from '@/lib/runescape-utils';
+import { useEffect, useRef, useState } from 'react';
 
 interface Skill {
     rank: number;
@@ -11,6 +12,8 @@ interface PlayerLevelsComponentProps {
 }
 
 export function PlayerLevelsComponent({ skills }: PlayerLevelsComponentProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [columns, setColumns] = useState(2);
     const skillList = SKILL_ORDER.map((skillName) => ({
         name: skillName,
         ...skills[skillName],
@@ -40,6 +43,38 @@ export function PlayerLevelsComponent({ skills }: PlayerLevelsComponentProps) {
         return Math.floor(base + Math.max(melee, ranged, magic));
     })();
 
+    // Calculate columns based on container width
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const updateColumns = () => {
+            const width = container.offsetWidth;
+            // Adjust breakpoints based on typical skill card width (~150-200px with gap)
+            // 2 columns: < 400px
+            // 3 columns: 400px - 650px
+            // 4 columns: > 650px
+            if (width < 400) {
+                setColumns(2);
+            } else if (width < 650) {
+                setColumns(3);
+            } else {
+                setColumns(4);
+            }
+        };
+
+        // Initial calculation
+        updateColumns();
+
+        // Use ResizeObserver to watch for size changes
+        const resizeObserver = new ResizeObserver(updateColumns);
+        resizeObserver.observe(container);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, []);
+
     return (
         <div className="h-full flex flex-col">
             <h3 className="mb-3 text-lg font-semibold">Levels</h3>
@@ -68,8 +103,8 @@ export function PlayerLevelsComponent({ skills }: PlayerLevelsComponentProps) {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto overflow-x-auto">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 min-w-0">
+            <div ref={containerRef} className="flex-1 overflow-y-auto overflow-x-auto">
+                <div className="grid gap-3 min-w-0" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
                     {skillList.map((skill) => (
                         <div
                             key={skill.name}

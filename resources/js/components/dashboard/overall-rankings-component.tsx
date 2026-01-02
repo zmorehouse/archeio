@@ -71,23 +71,68 @@ export function OverallRankingsComponent({
             const aSkill = a.skills[selectedSkill];
             const bSkill = b.skills[selectedSkill];
 
-            let comparison = 0;
+            let primaryComparison = 0;
+            let secondaryComparison = 0;
+            
             switch (sortField) {
                 case 'rank':
-                    comparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity);
+                    primaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity);
+                    // If ranks are equal, use secondary sort: Level > Exp > Username
+                    if (primaryComparison === 0) {
+                        secondaryComparison = bSkill.level - aSkill.level; // Higher level first (desc)
+                        if (secondaryComparison === 0) {
+                            secondaryComparison = bSkill.experience - aSkill.experience; // Higher exp first (desc)
+                            if (secondaryComparison === 0) {
+                                secondaryComparison = a.name.localeCompare(b.name); // Alphabetical username (asc)
+                            }
+                        }
+                    }
                     break;
                 case 'name':
-                    comparison = a.name.localeCompare(b.name);
+                    primaryComparison = a.name.localeCompare(b.name);
+                    // If names are equal (unlikely but possible), use secondary sort: Level > Exp > Rank
+                    if (primaryComparison === 0) {
+                        secondaryComparison = bSkill.level - aSkill.level; // Higher level first (desc)
+                        if (secondaryComparison === 0) {
+                            secondaryComparison = bSkill.experience - aSkill.experience; // Higher exp first (desc)
+                            if (secondaryComparison === 0) {
+                                secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                            }
+                        }
+                    }
                     break;
                 case 'level':
-                    comparison = aSkill.level - bSkill.level;
+                    primaryComparison = aSkill.level - bSkill.level;
+                    // If levels are equal, use secondary sort: Exp > Rank > Username
+                    if (primaryComparison === 0) {
+                        secondaryComparison = bSkill.experience - aSkill.experience; // Higher exp first (desc)
+                        if (secondaryComparison === 0) {
+                            secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                            if (secondaryComparison === 0) {
+                                secondaryComparison = a.name.localeCompare(b.name); // Alphabetical username (asc)
+                            }
+                        }
+                    }
                     break;
                 case 'experience':
-                    comparison = aSkill.experience - bSkill.experience;
+                    primaryComparison = aSkill.experience - bSkill.experience;
+                    // If exp is equal, use secondary sort: Level > Rank > Username
+                    if (primaryComparison === 0) {
+                        secondaryComparison = bSkill.level - aSkill.level; // Higher level first (desc)
+                        if (secondaryComparison === 0) {
+                            secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                            if (secondaryComparison === 0) {
+                                secondaryComparison = a.name.localeCompare(b.name); // Alphabetical username (asc)
+                            }
+                        }
+                    }
                     break;
             }
 
-            return sortDirection === 'asc' ? comparison : -comparison;
+            // Apply sort direction only to primary comparison, secondary comparison always uses fixed order
+            const adjustedPrimary = sortDirection === 'asc' ? primaryComparison : -primaryComparison;
+            // If primary comparison is 0 (equal), use secondary comparison (which has its own fixed order)
+            return adjustedPrimary !== 0 ? adjustedPrimary : secondaryComparison;
         });
 
     return (
