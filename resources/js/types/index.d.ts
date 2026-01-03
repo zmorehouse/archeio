@@ -28,6 +28,7 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     players?: Array<{ id: number; name: string }>;
+    appVersion?: string | null;
     [key: string]: unknown;
 }
 

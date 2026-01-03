@@ -7,6 +7,7 @@ use App\Models\PlayerStat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -56,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 ]);
             }),
             'historicalStats' => fn () => $this->getHistoricalStats(),
+            'appVersion' => fn () => $this->getLatestVersion(),
         ];
     }
 
@@ -90,6 +92,30 @@ class HandleInertiaRequests extends Middleware
             }
 
             return $historicalStats;
+        });
+    }
+
+    /**
+     * Get the latest version from CHANGELOG.md
+     * Cached for 1 hour
+     */
+    protected function getLatestVersion(): ?string
+    {
+        return Cache::remember('app.latest_version', 3600, function () {
+            $changelogPath = base_path('CHANGELOG.md');
+            
+            if (!File::exists($changelogPath)) {
+                return null;
+            }
+            
+            $content = File::get($changelogPath);
+            
+            // Look for version pattern: ## [1.0.3] or ## [1.0.2]
+            if (preg_match('/##\s*\[([\d.]+)\]/', $content, $matches)) {
+                return $matches[1];
+            }
+            
+            return null;
         });
     }
 }

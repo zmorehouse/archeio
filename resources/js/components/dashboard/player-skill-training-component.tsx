@@ -22,6 +22,19 @@ interface PlayerSkillTrainingComponentProps {
 
 // Helper function to generate pie chart paths
 function createPieSlice(cx: number, cy: number, radius: number, startAngle: number, endAngle: number): string {
+    // Handle full circle (100% single skill)
+    const angleDiff = endAngle - startAngle;
+    if (angleDiff >= 360 || (startAngle === 0 && endAngle >= 360)) {
+        // Draw a full circle from center
+        return [
+            "M", cx, cy,
+            "L", cx, cy - radius,
+            "A", radius, radius, 0, 1, 1, cx, cy + radius,
+            "A", radius, radius, 0, 1, 1, cx, cy - radius,
+            "Z"
+        ].join(" ");
+    }
+    
     const start = polarToCartesian(cx, cy, radius, endAngle);
     const end = polarToCartesian(cx, cy, radius, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
@@ -233,6 +246,7 @@ export function PlayerSkillTrainingComponent({ playerId, historicalStats = [] }:
                             <svg viewBox="0 0 250 250" className="w-full max-w-[400px] h-auto">
                                 {pieSlices.map((slice) => {
                                     const isHovered = hoveredSlice === slice.skill;
+                                    const isFullCircle = pieSlices.length === 1 && slice.percentage >= 99.9;
                                     const isLarge = slice.percentage > 10; // Show text on any slice > 10%
                                     const midAngle = (slice.startAngle + slice.endAngle) / 2;
                                     const labelRadius = radius * 0.7;
@@ -244,8 +258,8 @@ export function PlayerSkillTrainingComponent({ playerId, historicalStats = [] }:
                                             <path
                                                 d={createPieSlice(cx, cy, radius, slice.startAngle, slice.endAngle)}
                                                 fill={slice.color}
-                                                stroke="white"
-                                                strokeWidth="2"
+                                                stroke={isFullCircle ? "none" : "white"}
+                                                strokeWidth={isFullCircle ? "0" : "2"}
                                                 style={{ 
                                                     opacity: isHovered ? 1 : hoveredSlice ? 0.3 : 1,
                                                     cursor: 'pointer',
@@ -254,7 +268,28 @@ export function PlayerSkillTrainingComponent({ playerId, historicalStats = [] }:
                                                 onMouseEnter={() => setHoveredSlice(slice.skill)}
                                                 onMouseLeave={() => setHoveredSlice(null)}
                                             />
-                                            {isLarge && !hoveredSlice && (
+                                            {isFullCircle && !hoveredSlice ? (
+                                                <>
+                                                    <image
+                                                        href={getSkillIconPath(slice.skill)}
+                                                        x={cx - 5}
+                                                        y={cy - 5}
+                                                        width="10"
+                                                        height="10"
+                                                        className="pointer-events-none"
+                                                    />
+                                                    <text
+                                                        x={cx + 6}
+                                                        y={cy + 2}
+                                                        textAnchor="start"
+                                                        dominantBaseline="middle"
+                                                        className="text-[9px] font-semibold fill-white pointer-events-none"
+                                                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                                    >
+                                                        {slice.percentage.toFixed(0)}%
+                                                    </text>
+                                                </>
+                                            ) : isLarge && !hoveredSlice && (
                                                 <>
                                                     <image
                                                         href={getSkillIconPath(slice.skill)}
@@ -345,9 +380,27 @@ export function PlayerSkillTrainingComponent({ playerId, historicalStats = [] }:
                     </div>
                 )
             ) : (
-                <div className="flex h-full items-center justify-center text-neutral-500 dark:text-neutral-400">
-                    <p className="text-sm">No training data available</p>
-                </div>
+                chartType === 'pie' ? (
+                    <div className="flex-1 flex items-center gap-4 overflow-hidden relative">
+                        {/* Left-side legend placeholder */}
+                        <div className="flex-shrink-0 space-y-1.5 py-2 max-h-full overflow-y-auto">
+                        </div>
+                        
+                        {/* Pie chart placeholder - maintains same height */}
+                        <div className="flex-1 flex items-center justify-end relative">
+                            <svg viewBox="0 0 250 250" className="w-full max-w-[400px] h-auto">
+                                {/* Empty SVG to maintain dimensions */}
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center text-neutral-500 dark:text-neutral-400 pointer-events-none">
+                                <p className="text-sm">No training data available</p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-1 space-y-3 overflow-y-auto flex items-center justify-center text-neutral-500 dark:text-neutral-400">
+                        <p className="text-sm">No training data available</p>
+                    </div>
+                )
             )}
         </div>
     );
