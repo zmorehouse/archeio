@@ -33,26 +33,40 @@ class DashboardController extends Controller
             });
 
             // Get historical stats for all players (last 90 days)
+            // Only include activities when they exist and are non-empty to reduce memory usage
             $historicalStats = [];
             foreach ($players as $player) {
+                // Use select to only load needed columns and reduce memory
                 $stats = PlayerStat::where('player_id', $player->id)
                     ->where('fetched_at', '>=', now()->subDays(90))
                     ->orderBy('fetched_at', 'asc')
+                    ->select(['fetched_at', 'skills', 'activities'])
                     ->get()
                     ->map(function ($stat) {
-                        return [
+                        $result = [
                             'fetched_at' => $stat->fetched_at->toIso8601String(),
                             'overall_experience' => $stat->skills['Overall']['experience'] ?? 0,
                             'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                             'skills' => $stat->skills ?? [],
-                            'activities' => $stat->activities ?? [],
                         ];
+                        
+                        // Only include activities if they exist and are not empty
+                        // This significantly reduces memory usage since most historical stats don't have activities
+                        if (!empty($stat->activities) && is_array($stat->activities)) {
+                            $result['activities'] = $stat->activities;
+                        }
+                        
+                        return $result;
                     })
+                    ->values() // Re-index array to reduce memory
                     ->toArray();
                 
                 if (!empty($stats)) {
                     $historicalStats[$player->id] = $stats;
                 }
+                
+                // Free memory after processing each player
+                unset($stats);
             }
             
             return [

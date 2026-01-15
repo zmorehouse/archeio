@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5]
+
+### Performance
+- Optimized memory usage in dashboard data loading
+
+### Fixed
+- Fixed misc. Typescript errors
+
 ## [1.0.4]
 
 ### Added

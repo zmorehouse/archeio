@@ -57,7 +57,7 @@ export function detectActivityEvents(
                     if (skillName === 'Overall') return;
                     
                     const currentLevel = currentStat.skills[skillName]?.level || 0;
-                    const previousLevel = previousStat.skills[skillName]?.level || 0;
+                    const previousLevel = previousStat!.skills[skillName]?.level || 0;
 
                     if (currentLevel > previousLevel) {
                         events.push({
