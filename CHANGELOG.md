@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4]
+
+### Added
+- Boss kills now appear in the activity overview (displayed in red with sword icon)
+- Boss kill notifications show condensed format (e.g., "killed Zulrah 4 times") when multiple kills are detected between stat updates
+
+### Changed
+- Exp over time graph hover tooltips now show the player's average over the entire selected period instead of just the node value
+  - Daily view: shows average exp/hr across all periods
+  - Weekly/Monthly/6 Month views: shows average exp/day across all periods
+
 ## [1.0.3]
 
 ### Added

@@ -17,6 +17,7 @@ interface HistoricalStat {
     overall_experience: number;
     overall_level: number;
     skills: Record<string, { rank: number; level: number; experience: number }>;
+    activities?: Record<string, { rank: number; score: number }>;
 }
 
 interface Player {
@@ -111,6 +112,46 @@ export function detectActivityEvents(
                         totalLevel: currentMilestoneLevel,
                     });
                 }
+
+                // Detect boss kills by comparing activity scores
+                const currentActivities = currentStat.activities || {};
+                const previousActivities = previousStat.activities || {};
+
+                // List of boss activity patterns
+                const bossPatterns = [
+                    'boss', 'kill', 'chest', 'chambers', 'theatre', 'inferno', 'gauntlet',
+                    'nightmare', 'nex', 'zulrah', 'vorkath', 'cerberus', 'kraken', 'sire',
+                    'hydra', 'barrows', 'corp', 'zilyana', 'bandos', 'armadyl', 'saradomin',
+                    'zamorak', 'kree', 'graardor', 'tsutsaroth', 'kril'
+                ];
+
+                Object.keys(currentActivities).forEach(activityName => {
+                    const lowerName = activityName.toLowerCase();
+                    const isBoss = bossPatterns.some(pattern => lowerName.includes(pattern));
+
+                    if (isBoss) {
+                        const currentScore = currentActivities[activityName]?.score || 0;
+                        const previousScore = previousActivities[activityName]?.score || 0;
+
+                        // If score increased, that means a boss kill happened
+                        if (currentScore > previousScore) {
+                            const kills = currentScore - previousScore;
+                            const bossDisplayName = activityName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            
+                            events.push({
+                                id: `${player.id}-boss-${activityName}-${currentScore}-${currentDate.getTime()}`,
+                                type: 'boss_kill',
+                                playerId: player.id,
+                                playerName: player.name,
+                                timestamp: currentDate,
+                                description: kills === 1 
+                                    ? `killed ${bossDisplayName}`
+                                    : `killed ${bossDisplayName} ${kills} times`,
+                                bossName: activityName,
+                            });
+                        }
+                    }
+                });
             }
 
             previousStat = currentStat;

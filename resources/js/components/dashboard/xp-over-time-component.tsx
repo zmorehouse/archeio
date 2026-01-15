@@ -540,8 +540,35 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                 (() => {
                     const player = players.find(p => p.id === hoveredData.playerId);
                     if (!player) return null;
-                    const periodDays = (hoveredData.period.endDate.getTime() - hoveredData.period.startDate.getTime()) / (1000 * 60 * 60 * 24);
-                    const avgXp = periodDays > 0 ? hoveredData.xp / periodDays : 0;
+                    
+                    // Calculate total XP across all periods for this player
+                    const totalXp = chartData.reduce((sum, point) => {
+                        return sum + (point.players[hoveredData.playerId] || 0);
+                    }, 0);
+                    
+                    // Calculate total time span from first period to last period
+                    const firstPeriod = chartData[0]?.period;
+                    const lastPeriod = chartData[chartData.length - 1]?.period;
+                    
+                    if (!firstPeriod || !lastPeriod) return null;
+                    
+                    const totalTimeMs = lastPeriod.endDate.getTime() - firstPeriod.startDate.getTime();
+                    
+                    // Calculate average based on period type
+                    let avgXp = 0;
+                    let avgLabel = '';
+                    
+                    if (period === 'daily') {
+                        // Average per hour for daily view
+                        const totalHours = totalTimeMs / (1000 * 60 * 60);
+                        avgXp = totalHours > 0 ? totalXp / totalHours : 0;
+                        avgLabel = '/hr';
+                    } else {
+                        // Average per day for weekly/monthly/6month views
+                        const totalDays = totalTimeMs / (1000 * 60 * 60 * 24);
+                        avgXp = totalDays > 0 ? totalXp / totalDays : 0;
+                        avgLabel = '/day';
+                    }
                     
                     return (
                         <div
@@ -557,7 +584,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                                 XP: {formatXP(hoveredData.xp)}
                             </div>
                             <div className="text-neutral-400 dark:text-neutral-500 text-[10px]">
-                                Avg: {formatXP(avgXp)}/day
+                                Avg: {formatXP(avgXp)}{avgLabel}
                             </div>
                         </div>
                     );
