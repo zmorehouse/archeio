@@ -31,3 +31,28 @@ createInertiaApp({
 
 // This will set light / dark mode on load...
 initializeTheme();
+
+// Handle navigation errors that might occur with replaceState
+// This is often caused by URL mismatches or Cloudflare cookie issues
+if (typeof window !== 'undefined') {
+    window.addEventListener('error', (event) => {
+        // Silently handle NS_ERROR_ILLEGAL_VALUE errors from replaceState
+        // These are often caused by Cloudflare cookie issues or URL mismatches
+        if (event.message?.includes('NS_ERROR_ILLEGAL_VALUE') || 
+            event.message?.includes('replaceState') ||
+            event.error?.message?.includes('NS_ERROR_ILLEGAL_VALUE')) {
+            console.warn('Navigation error caught and handled:', event.message);
+            event.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // Also handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+        if (event.reason?.message?.includes('NS_ERROR_ILLEGAL_VALUE') ||
+            event.reason?.message?.includes('replaceState')) {
+            console.warn('Navigation promise rejection caught and handled:', event.reason);
+            event.preventDefault();
+        }
+    });
+}

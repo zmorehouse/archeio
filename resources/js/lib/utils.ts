@@ -14,5 +14,20 @@ export function isSameUrl(
 }
 
 export function resolveUrl(url: NonNullable<InertiaLinkProps['href']>): string {
-    return typeof url === 'string' ? url : url.url;
+    const resolved = typeof url === 'string' ? url : url.url;
+    // Ensure we return a valid URL string, defaulting to empty string if invalid
+    if (!resolved || typeof resolved !== 'string') {
+        return '';
+    }
+    // Ensure the URL is properly formatted (relative URLs are fine)
+    try {
+        // If it's an absolute URL, validate it
+        if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+            new URL(resolved);
+        }
+        return resolved;
+    } catch {
+        // If URL parsing fails, return the string as-is (might be a relative URL)
+        return resolved;
+    }
 }

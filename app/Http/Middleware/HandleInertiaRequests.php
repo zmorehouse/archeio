@@ -77,16 +77,24 @@ class HandleInertiaRequests extends Middleware
                     ->where('fetched_at', '>=', now()->subDays(30))
                     ->orderBy('fetched_at', 'desc')
                     ->limit(200)
-                    ->select(['fetched_at', 'skills'])
+                    ->select(['fetched_at', 'skills', 'activities'])
                     ->get()
                     ->reverse() // Reverse to get chronological order
                     ->map(function ($stat) {
-                        return [
+                        $result = [
                             'fetched_at' => $stat->fetched_at->toIso8601String(),
                             'overall_experience' => $stat->skills['Overall']['experience'] ?? 0,
                             'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                             'skills' => $stat->skills ?? [],
                         ];
+                        
+                        // Only include activities if they exist and are not empty
+                        // This reduces memory usage while still allowing boss kill detection
+                        if (!empty($stat->activities) && is_array($stat->activities)) {
+                            $result['activities'] = $stat->activities;
+                        }
+                        
+                        return $result;
                     })
                     ->values()
                     ->toArray();
