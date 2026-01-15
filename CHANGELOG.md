@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.5]
 
+### Added
+- Laravel Nightwatch
+
 ### Performance
 - Optimized memory usage in dashboard data loading
 
