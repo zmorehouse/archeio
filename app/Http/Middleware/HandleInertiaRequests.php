@@ -62,7 +62,7 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Get historical stats for all players (last 90 days)
+     * Get historical stats for all players (last 30 days, max 200 stats)
      * Cached for 5 minutes to reduce database load
      */
     protected function getHistoricalStats(): array
@@ -72,10 +72,14 @@ class HandleInertiaRequests extends Middleware
             $historicalStats = [];
 
             foreach ($players as $player) {
+                // Limit to 200 most recent stats and 30 days to reduce memory footprint
                 $stats = PlayerStat::where('player_id', $player->id)
-                    ->where('fetched_at', '>=', now()->subDays(90))
-                    ->orderBy('fetched_at', 'asc')
+                    ->where('fetched_at', '>=', now()->subDays(30))
+                    ->orderBy('fetched_at', 'desc')
+                    ->limit(200)
+                    ->select(['fetched_at', 'skills'])
                     ->get()
+                    ->reverse() // Reverse to get chronological order
                     ->map(function ($stat) {
                         return [
                             'fetched_at' => $stat->fetched_at->toIso8601String(),
@@ -84,11 +88,14 @@ class HandleInertiaRequests extends Middleware
                             'skills' => $stat->skills ?? [],
                         ];
                     })
+                    ->values()
                     ->toArray();
                 
                 if (!empty($stats)) {
                     $historicalStats[$player->id] = $stats;
                 }
+                
+                unset($stats);
             }
 
             return $historicalStats;

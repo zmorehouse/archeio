@@ -42,6 +42,8 @@ class FetchPlayerStats extends Command
         $stored = 0;
         $skipped = 0;
         $failed = 0;
+        $batch = [];
+        $batchSize = 10; // Insert in batches of 10 for better performance
 
         foreach ($players as $player) {
             $this->line("Fetching stats for {$player->name}...");
@@ -54,7 +56,7 @@ class FetchPlayerStats extends Command
                 continue;
             }
 
-            // Create a hash of the data to detect changes
+            // Create a hash of the data to detect changes (optimized)
             $dataHash = $this->createDataHash($data);
 
             // Check if we already have this exact data
@@ -65,20 +67,34 @@ class FetchPlayerStats extends Command
                 continue;
             }
 
-            // Store the new stats
-            PlayerStat::create([
+            // Prepare batch insert data
+            $batch[] = [
                 'player_id' => $player->id,
-                'skills' => $data['skills'],
-                'activities' => $data['activities'],
+                'skills' => json_encode($data['skills']), // Pre-encode to avoid Eloquent overhead
+                'activities' => json_encode($data['activities'] ?? []),
                 'data_hash' => $dataHash,
                 'fetched_at' => now(),
-            ]);
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
-            $this->info("  Stored new stats for {$player->name}");
             $stored++;
+
+            // Insert in batches for better performance
+            if (count($batch) >= $batchSize) {
+                PlayerStat::insert($batch);
+                $this->info("  Stored batch of " . count($batch) . " stats");
+                $batch = [];
+            }
 
             // Small delay to avoid rate limiting
             usleep(500000); // 0.5 seconds
+        }
+
+        // Insert remaining batch
+        if (!empty($batch)) {
+            PlayerStat::insert($batch);
+            $this->info("  Stored final batch of " . count($batch) . " stats");
         }
 
         $this->newLine();
@@ -104,29 +120,19 @@ class FetchPlayerStats extends Command
 
     /**
      * Create a hash of the stats data to detect changes
+     * Optimized to avoid expensive recursive sorting - just hash the JSON directly
      */
     private function createDataHash(array $data): string
     {
-        // Create a normalized copy for hashing
-        $normalized = [
-            'skills' => $this->sortRecursive($data['skills']),
-            'activities' => $this->sortRecursive($data['activities']),
+        // Only hash skills and activities - no need for expensive recursive sorting
+        // JSON encoding is deterministic for associative arrays with string keys
+        $toHash = [
+            'skills' => $data['skills'] ?? [],
+            'activities' => $data['activities'] ?? [],
         ];
         
-        return hash('sha256', json_encode($normalized));
-    }
-
-    /**
-     * Recursively sort an array
-     */
-    private function sortRecursive(array $array): array
-    {
-        ksort($array);
-        foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $array[$key] = $this->sortRecursive($value);
-            }
-        }
-        return $array;
+        // Use JSON_UNESCAPED_SLASHES and JSON_UNESCAPED_UNICODE for consistency
+        // and slightly better performance
+        return hash('sha256', json_encode($toHash, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 }
