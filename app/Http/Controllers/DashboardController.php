@@ -32,16 +32,14 @@ class DashboardController extends Controller
                 ];
             });
 
-            // Get historical stats for all players (last 30 days, max 200 stats per player)
             // Only include activities when they exist and are non-empty to reduce memory usage
             $historicalStats = [];
             foreach ($players as $player) {
                 // Use select to only load needed columns and reduce memory
                 // Limit to 200 most recent stats and 30 days to reduce memory footprint
                 $stats = PlayerStat::where('player_id', $player->id)
-                    ->where('fetched_at', '>=', now()->subDays(30))
+                    ->where('fetched_at', '>=', now()->subMonths(6))
                     ->orderBy('fetched_at', 'desc')
-                    ->limit(200)
                     ->select(['fetched_at', 'skills', 'activities'])
                     ->get()
                     ->reverse() // Reverse to get chronological order
