@@ -40,6 +40,7 @@ class DashboardController extends Controller
                 $stats = PlayerStat::where('player_id', $player->id)
                     ->where('fetched_at', '>=', now()->subMonths(6))
                     ->orderBy('fetched_at', 'desc')
+                    ->limit(600)
                     ->select(['fetched_at', 'skills', 'activities'])
                     ->get()
                     ->reverse() // Reverse to get chronological order
