@@ -32,18 +32,46 @@ class DashboardController extends Controller
                 ];
             });
 
-            // Only include activities when they exist and are non-empty to reduce memory usage
+            // Smart aggregation strategy to reduce memory while supporting all views:
+            // - Last 30 days: Keep all records (needed for daily/weekly/monthly views)
+            // - 30 days to 6 months: Aggregate to one record per day (last record of each day)
             $historicalStats = [];
+            $thirtyDaysAgo = now()->subDays(30);
+            $sixMonthsAgo = now()->subMonths(6);
+            
             foreach ($players as $player) {
-                // Use select to only load needed columns and reduce memory
-                // Limit to 200 most recent stats and 30 days to reduce memory footprint
-                $stats = PlayerStat::where('player_id', $player->id)
-                    ->where('fetched_at', '>=', now()->subMonths(6))
-                    ->orderBy('fetched_at', 'desc')
-                    ->limit(600)
+                // Fetch all records from last 30 days (detailed data for short-term views)
+                $recentStats = PlayerStat::where('player_id', $player->id)
+                    ->where('fetched_at', '>=', $thirtyDaysAgo)
+                    ->orderBy('fetched_at', 'asc')
                     ->select(['fetched_at', 'skills', 'activities'])
-                    ->get()
-                    ->reverse() // Reverse to get chronological order
+                    ->get();
+                
+                // For older data (30 days to 6 months), fetch with limit and aggregate in PHP
+                // Limit to prevent memory issues, then aggregate to one per day
+                $olderStats = PlayerStat::where('player_id', $player->id)
+                    ->where('fetched_at', '>=', $sixMonthsAgo)
+                    ->where('fetched_at', '<', $thirtyDaysAgo)
+                    ->orderBy('fetched_at', 'desc')
+                    ->limit(2000) // Reasonable limit for ~150 days
+                    ->select(['fetched_at', 'skills', 'activities'])
+                    ->get();
+                
+                // Aggregate older stats to one record per day (keep the last record of each day)
+                $aggregatedByDay = [];
+                foreach ($olderStats as $stat) {
+                    $dayKey = $stat->fetched_at->format('Y-m-d');
+                    // Keep the latest record for each day
+                    if (!isset($aggregatedByDay[$dayKey]) || 
+                        $stat->fetched_at->gt($aggregatedByDay[$dayKey]->fetched_at)) {
+                        $aggregatedByDay[$dayKey] = $stat;
+                    }
+                }
+                $aggregatedStats = collect(array_values($aggregatedByDay))->sortBy('fetched_at');
+                
+                // Merge recent and aggregated stats, then process
+                $allStats = $recentStats->concat($aggregatedStats)
+                    ->sortBy('fetched_at')
                     ->map(function ($stat) {
                         $result = [
                             'fetched_at' => $stat->fetched_at->toIso8601String(),
@@ -53,22 +81,21 @@ class DashboardController extends Controller
                         ];
                         
                         // Only include activities if they exist and are not empty
-                        // This significantly reduces memory usage since most historical stats don't have activities
                         if (!empty($stat->activities) && is_array($stat->activities)) {
                             $result['activities'] = $stat->activities;
                         }
                         
                         return $result;
                     })
-                    ->values() // Re-index array to reduce memory
+                    ->values()
                     ->toArray();
                 
-                if (!empty($stats)) {
-                    $historicalStats[$player->id] = $stats;
+                if (!empty($allStats)) {
+                    $historicalStats[$player->id] = $allStats;
                 }
                 
                 // Free memory after processing each player
-                unset($stats);
+                unset($recentStats, $olderStats, $aggregatedByDay, $aggregatedStats, $allStats);
             }
             
             return [
