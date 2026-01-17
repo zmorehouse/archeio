@@ -30,6 +30,7 @@ class PlayerController extends Controller
                         'overall_experience' => $stat->skills['Overall']['experience'] ?? 0,
                         'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                         'skills' => $stat->skills ?? [],
+                        'activities' => $stat->activities ?? [],
                     ];
                 })
                 ->toArray();

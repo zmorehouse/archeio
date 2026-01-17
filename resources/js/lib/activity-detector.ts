@@ -17,6 +17,7 @@ interface HistoricalStat {
     overall_experience: number;
     overall_level: number;
     skills: Record<string, { rank: number; level: number; experience: number }>;
+    activities?: Record<string, { rank: number; score: number }>;
 }
 
 interface Player {
@@ -111,6 +112,63 @@ export function detectActivityEvents(
                         totalLevel: currentMilestoneLevel,
                     });
                 }
+
+                // Detect boss kills
+                const currentActivities = currentStat.activities || {};
+                const previousActivities = previousStat.activities || {};
+
+                // Check for boss activities that have increased
+                Object.keys(currentActivities).forEach(activityName => {
+                    const currentScore = currentActivities[activityName]?.score || 0;
+                    const previousScore = previousActivities[activityName]?.score || 0;
+
+                    if (currentScore > previousScore) {
+                        // Check if this is a boss activity
+                        const isBoss = activityName.toLowerCase().includes('boss') ||
+                            activityName.toLowerCase().includes('kill') ||
+                            activityName.toLowerCase().includes('chest') ||
+                            activityName.toLowerCase().includes('chambers') ||
+                            activityName.toLowerCase().includes('theatre') ||
+                            activityName.toLowerCase().includes('inferno') ||
+                            activityName.toLowerCase().includes('gauntlet') ||
+                            activityName.toLowerCase().includes('nightmare') ||
+                            activityName.toLowerCase().includes('nex') ||
+                            activityName.toLowerCase().includes('zulrah') ||
+                            activityName.toLowerCase().includes('vorkath') ||
+                            activityName.toLowerCase().includes('cerberus') ||
+                            activityName.toLowerCase().includes('kraken') ||
+                            activityName.toLowerCase().includes('sire') ||
+                            activityName.toLowerCase().includes('hydra') ||
+                            activityName.toLowerCase().includes('barrows') ||
+                            activityName.toLowerCase().includes('corp') ||
+                            activityName.toLowerCase().includes('zilyana') ||
+                            activityName.toLowerCase().includes('bandos') ||
+                            activityName.toLowerCase().includes('armadyl') ||
+                            activityName.toLowerCase().includes('saradomin') ||
+                            activityName.toLowerCase().includes('zamorak');
+
+                        if (isBoss) {
+                            const killCount = currentScore - previousScore;
+                            // Format boss name (capitalize first letter of each word)
+                            const bossName = activityName
+                                .split(/\s+/)
+                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                .join(' ');
+
+                            events.push({
+                                id: `${player.id}-boss-kill-${activityName}-${currentDate.getTime()}`,
+                                type: 'boss_kill',
+                                playerId: player.id,
+                                playerName: player.name,
+                                timestamp: currentDate,
+                                description: killCount === 1 
+                                    ? `killed ${bossName}` 
+                                    : `killed ${bossName} ${killCount} times`,
+                                bossName: bossName,
+                            });
+                        }
+                    }
+                });
             }
 
             previousStat = currentStat;
