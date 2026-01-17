@@ -5,6 +5,7 @@
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
+        "predev": "php artisan wayfinder:generate --with-form",
         "dev": "vite",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
