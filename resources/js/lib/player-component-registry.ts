@@ -42,5 +42,13 @@ export const playerComponentRegistry: ComponentRegistry = {
         defaultSize: { w: 6, h: 6 },
         minSize: { w: 4, h: 4 },
     },
+    'player-boss-kills': {
+        id: 'player-boss-kills',
+        title: 'Boss Kills Distribution',
+        description: 'Percentage breakdown of boss kills',
+        defaultEnabled: true,
+        defaultSize: { w: 5, h: 4 },
+        minSize: { w: 4, h: 3 },
+    },
 };
 

@@ -540,8 +540,22 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                 (() => {
                     const player = players.find(p => p.id === hoveredData.playerId);
                     if (!player) return null;
-                    const periodDays = (hoveredData.period.endDate.getTime() - hoveredData.period.startDate.getTime()) / (1000 * 60 * 60 * 24);
-                    const avgXp = periodDays > 0 ? hoveredData.xp / periodDays : 0;
+                    
+                    // Calculate average based on period type
+                    let avgXp: number;
+                    let avgLabel: string;
+                    
+                    if (period === 'daily') {
+                        // Daily view: show average exp/hr across all periods
+                        const periodHours = (hoveredData.period.endDate.getTime() - hoveredData.period.startDate.getTime()) / (1000 * 60 * 60);
+                        avgXp = periodHours > 0 ? hoveredData.xp / periodHours : 0;
+                        avgLabel = '/hr';
+                    } else {
+                        // Weekly/Monthly/6 Month views: show average exp/day across all periods
+                        const periodDays = (hoveredData.period.endDate.getTime() - hoveredData.period.startDate.getTime()) / (1000 * 60 * 60 * 24);
+                        avgXp = periodDays > 0 ? hoveredData.xp / periodDays : 0;
+                        avgLabel = '/day';
+                    }
                     
                     return (
                         <div
@@ -557,7 +571,7 @@ export function XpOverTimeComponent({ players, historicalStats = {} }: XpOverTim
                                 XP: {formatXP(hoveredData.xp)}
                             </div>
                             <div className="text-neutral-400 dark:text-neutral-500 text-[10px]">
-                                Avg: {formatXP(avgXp)}/day
+                                Avg: {formatXP(avgXp)}{avgLabel}
                             </div>
                         </div>
                     );

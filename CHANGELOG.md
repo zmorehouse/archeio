@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7]
+
+### Added
+- Boss kills distribution pie charts for dashboard and individual player pages
+  - Shows percentage breakdown of all boss kills
+  - Supports both pie and bar chart views
+  - Aggregates boss kills across all players on dashboard view
+
+### Performance
+- Implemented progressive downsampling for historical stats to reduce memory usage
+  - Last 14 days: Keep all records (full resolution for activity detection)
+  - 14-30 days: Keep every 2nd record (50% reduction)
+  - 30-90 days: Keep every 4th record (75% reduction)
+  
+- Optimized activities data in historical stats
+  - Only include boss-related activities (filtered from all activities)
+  - Activities only included for recent stats (last 14 days)
+  - Significantly reduces memory usage while preserving boss kill detection functionality
+
 ## [1.0.6]
 ### Performance
 - Continued optimising data caching
@@ -76,5 +95,3 @@ All notable changes to this project will be documented in this file.
 - Player management via Artisan commands
 - Legacy data import functionality
 - API endpoints for player data access
-
-

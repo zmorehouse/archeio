@@ -14,6 +14,8 @@ import { PlayerSkillTrainingComponent } from './player-skill-training-component'
 import { PlayerGeneralStatsComponent } from './player-general-stats-component';
 import { PlayerActivityLedgerComponent } from './player-activity-ledger-component';
 import { AllActivityLedgerComponent } from './all-activity-ledger-component';
+import { BossKillsPieComponent } from './boss-kills-pie-component';
+import { PlayerBossKillsComponent } from './player-boss-kills-component';
 
 interface ComponentRendererProps {
     componentId: string;
@@ -47,6 +49,8 @@ export function ComponentRenderer({
             return <XpOverTimeComponent players={props.players || []} historicalStats={props.historicalStats || {}} />;
         case 'all-activity-ledger':
             return <AllActivityLedgerComponent players={props.players || []} historicalStats={props.historicalStats || {}} />;
+        case 'boss-kills-pie':
+            return <BossKillsPieComponent players={props.players || []} />;
         case 'player-levels':
             return <PlayerLevelsComponent skills={props.skills || {}} />;
         case 'player-xp-over-time':
@@ -72,6 +76,8 @@ export function ComponentRenderer({
                 playerName={props.playerName} 
                 historicalStats={props.historicalStats || []} 
             />;
+        case 'player-boss-kills':
+            return <PlayerBossKillsComponent activities={props.activities || {}} />;
         default:
             return (
                 <div className="text-center text-neutral-500">
