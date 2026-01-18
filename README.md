@@ -8,6 +8,8 @@
   </h3>
   A dashboard for tracking Old School RuneScape player statistics.<br/>
 Named after everyones favourite <a href="https://oldschool.runescape.wiki/w/Archeio">Arceeus Library Keeper</a>
+    <br><br>
+  <img src="public/dashboard.png" alt="Dashboard Screenshot" />
 </div>
 
 ## About Archeio
