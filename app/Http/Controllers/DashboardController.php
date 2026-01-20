@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Player;
-use App\Models\PlayerStat;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,7 +14,7 @@ class DashboardController extends Controller
      * - Last 14 days: Keep all records (full resolution for activity detection)
      * - 14-30 days: Keep every 2nd record (50% reduction)
      * - 30-90 days: Keep every 4th record (75% reduction)
-     * 
+     *
      * Also filters activities to only boss-related ones for recent stats (last 14 days)
      */
     protected function downsampleAndProcessStats($stats): array
@@ -23,14 +22,14 @@ class DashboardController extends Controller
         $now = now();
         $fourteenDaysAgo = $now->copy()->subDays(14);
         $thirtyDaysAgo = $now->copy()->subDays(30);
-        
+
         $processed = [];
         $index14Days = 0;  // Counter for 14-30 days period
         $index30Days = 0;  // Counter for 30-90 days period
-        
+
         foreach ($stats as $stat) {
             $fetchedAt = $stat->fetched_at;
-            
+
             // Determine which period this stat falls into
             if ($fetchedAt >= $fourteenDaysAgo) {
                 // Last 14 days: Keep all records (needed for activity detection)
@@ -44,7 +43,7 @@ class DashboardController extends Controller
                 $keep = ($index30Days % 4 === 0);
                 $index30Days++;
             }
-            
+
             if ($keep) {
                 $statData = [
                     'fetched_at' => $fetchedAt->toIso8601String(),
@@ -52,13 +51,14 @@ class DashboardController extends Controller
                     'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                     'skills' => $stat->skills ?? [],
                 ];
-                
+
                 // Only include activities for recent stats (last 14 days) to reduce memory usage
                 if ($fetchedAt >= $now->copy()->subDays(14)) {
                     // Filter activities to only boss-related ones
                     $activities = $stat->activities ?? [];
                     $bossActivities = array_filter($activities, function ($activityName) {
                         $lowerName = strtolower($activityName);
+
                         return str_contains($lowerName, 'boss') ||
                             str_contains($lowerName, 'kill') ||
                             str_contains($lowerName, 'chest') ||
@@ -84,11 +84,11 @@ class DashboardController extends Controller
                     }, ARRAY_FILTER_USE_KEY);
                     $statData['activities'] = $bossActivities;
                 }
-                
+
                 $processed[] = $statData;
             }
         }
-        
+
         return $processed;
     }
 
@@ -98,10 +98,10 @@ class DashboardController extends Controller
         $cacheKey = 'dashboard.data';
         $data = Cache::remember($cacheKey, 120, function () {
             $players = Player::orderBy('name')->get();
-            
+
             $playersWithStats = $players->map(function ($player) {
                 $latestStat = $player->latestStat();
-                
+
                 return [
                     'id' => $player->id,
                     'name' => $player->name,
@@ -114,27 +114,12 @@ class DashboardController extends Controller
                 ];
             });
 
-            // Get historical stats for all players (last 90 days) with progressive downsampling
-            $historicalStats = [];
-            foreach ($players as $player) {
-                $stats = PlayerStat::where('player_id', $player->id)
-                    ->where('fetched_at', '>=', now()->subDays(90))
-                    ->orderBy('fetched_at', 'asc')
-                    ->get();
-                
-                $processedStats = $this->downsampleAndProcessStats($stats);
-                
-                if (!empty($processedStats)) {
-                    $historicalStats[$player->id] = $processedStats;
-                }
-            }
-            
             return [
                 'players' => $playersWithStats,
-                'historicalStats' => $historicalStats,
+                // historicalStats is provided by HandleInertiaRequests middleware as a deferred prop
             ];
         });
-        
+
         return Inertia::render('dashboard', $data);
     }
 }
