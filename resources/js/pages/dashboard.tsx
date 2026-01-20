@@ -5,7 +5,7 @@ import { useDashboardLayout } from '@/hooks/use-dashboard-layout';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Deferred, Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, LayoutGrid, Columns2, Columns3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -265,18 +265,32 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
                         </div>
                     </div>
                 </div>
-                <DashboardGrid
-                    layout={{ ...layout, items: enabledItems }}
-                    onLayoutChange={(newLayout) => updateLayout(() => newLayout)}
-                    columnCount={columnCount}
+                <Deferred
+                    data="historicalStats"
+                    fallback={
+                        <div className="flex items-center justify-center p-8">
+                            <div className="text-center">
+                                <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+                                <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                                    Loading historical stats...
+                                </p>
+                            </div>
+                        </div>
+                    }
                 >
-                    {(componentId) => (
-                        <ComponentRenderer
-                            componentId={componentId}
-                            props={{ players, historicalStats }}
-                        />
-                    )}
-                </DashboardGrid>
+                    <DashboardGrid
+                        layout={{ ...layout, items: enabledItems }}
+                        onLayoutChange={(newLayout) => updateLayout(() => newLayout)}
+                        columnCount={columnCount}
+                    >
+                        {(componentId) => (
+                            <ComponentRenderer
+                                componentId={componentId}
+                                props={{ players, historicalStats }}
+                            />
+                        )}
+                    </DashboardGrid>
+                </Deferred>
             </div>
 
             {/* Notification for manual refresh */}

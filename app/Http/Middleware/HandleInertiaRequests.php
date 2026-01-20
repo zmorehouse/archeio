@@ -8,6 +8,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -29,6 +30,17 @@ class HandleInertiaRequests extends Middleware
     public function version(Request $request): ?string
     {
         return parent::version($request);
+    }
+
+    /**
+     * Enable history encryption to compress large state objects and prevent
+     * NS_ERROR_ILLEGAL_VALUE errors in Firefox when history state is too large.
+     *
+     * @see https://inertiajs.com/security/history-encryption
+     */
+    public function encryptHistory(Request $request): bool
+    {
+        return true;
     }
 
     /**
@@ -56,7 +68,7 @@ class HandleInertiaRequests extends Middleware
                     'name' => $player->name,
                 ]);
             }),
-            'historicalStats' => fn () => $this->getHistoricalStats(),
+            'historicalStats' => Inertia::defer(fn () => $this->getHistoricalStats())->once(),
             'appVersion' => fn () => $this->getLatestVersion(),
         ];
     }
@@ -66,7 +78,7 @@ class HandleInertiaRequests extends Middleware
      * - Last 14 days: Keep all records (full resolution for activity detection)
      * - 14-30 days: Keep every 2nd record (50% reduction)
      * - 30-90 days: Keep every 4th record (75% reduction)
-     * 
+     *
      * Also filters activities to only boss-related ones for recent stats (last 14 days)
      */
     protected function downsampleAndProcessStats($stats): array
@@ -74,14 +86,14 @@ class HandleInertiaRequests extends Middleware
         $now = now();
         $fourteenDaysAgo = $now->copy()->subDays(14);
         $thirtyDaysAgo = $now->copy()->subDays(30);
-        
+
         $processed = [];
         $index14Days = 0;  // Counter for 14-30 days period
         $index30Days = 0;  // Counter for 30-90 days period
-        
+
         foreach ($stats as $stat) {
             $fetchedAt = $stat->fetched_at;
-            
+
             // Determine which period this stat falls into
             if ($fetchedAt >= $fourteenDaysAgo) {
                 // Last 14 days: Keep all records (needed for activity detection)
@@ -95,7 +107,7 @@ class HandleInertiaRequests extends Middleware
                 $keep = ($index30Days % 4 === 0);
                 $index30Days++;
             }
-            
+
             if ($keep) {
                 $statData = [
                     'fetched_at' => $fetchedAt->toIso8601String(),
@@ -103,13 +115,14 @@ class HandleInertiaRequests extends Middleware
                     'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                     'skills' => $stat->skills ?? [],
                 ];
-                
+
                 // Only include activities for recent stats (last 14 days) to reduce memory usage
                 if ($fetchedAt >= $now->copy()->subDays(14)) {
                     // Filter activities to only boss-related ones
                     $activities = $stat->activities ?? [];
                     $bossActivities = array_filter($activities, function ($activityName) {
                         $lowerName = strtolower($activityName);
+
                         return str_contains($lowerName, 'boss') ||
                             str_contains($lowerName, 'kill') ||
                             str_contains($lowerName, 'chest') ||
@@ -135,11 +148,11 @@ class HandleInertiaRequests extends Middleware
                     }, ARRAY_FILTER_USE_KEY);
                     $statData['activities'] = $bossActivities;
                 }
-                
+
                 $processed[] = $statData;
             }
         }
-        
+
         return $processed;
     }
 
@@ -158,10 +171,10 @@ class HandleInertiaRequests extends Middleware
                     ->where('fetched_at', '>=', now()->subDays(90))
                     ->orderBy('fetched_at', 'asc')
                     ->get();
-                
+
                 $processedStats = $this->downsampleAndProcessStats($stats);
-                
-                if (!empty($processedStats)) {
+
+                if (! empty($processedStats)) {
                     $historicalStats[$player->id] = $processedStats;
                 }
             }
@@ -178,18 +191,18 @@ class HandleInertiaRequests extends Middleware
     {
         return Cache::remember('app.latest_version', 3600, function () {
             $changelogPath = base_path('CHANGELOG.md');
-            
-            if (!File::exists($changelogPath)) {
+
+            if (! File::exists($changelogPath)) {
                 return null;
             }
-            
+
             $content = File::get($changelogPath);
-            
+
             // Look for version pattern: ## [1.0.3] or ## [1.0.2]
             if (preg_match('/##\s*\[([\d.]+)\]/', $content, $matches)) {
                 return $matches[1];
             }
-            
+
             return null;
         });
     }
