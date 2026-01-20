@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.8]
+
+### Performance
+- Implemented deferred props for historical stats to prevent memory exhaustion errors
+  - Dashboard and player pages now load historical stats asynchronously after initial render
+
+### Fixed
+- Fixed memory exhaustion errors 
+- Removed automatic force refresh on dashboard page load
+
 ## [1.0.7]
 
 ### Added

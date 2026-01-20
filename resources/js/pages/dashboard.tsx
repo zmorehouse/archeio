@@ -172,17 +172,6 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
         }
     };
 
-    // Auto-refresh on first visit in session
-    useEffect(() => {
-        const hasRefreshed = sessionStorage.getItem('dashboard-auto-refreshed');
-        if (!hasRefreshed) {
-            sessionStorage.setItem('dashboard-auto-refreshed', 'true');
-            setTimeout(() => {
-                handleForceRefresh(true); // true = auto refresh, no notification
-            }, 0);
-        }
-         
-    }, []); // Only run once on mount
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
