@@ -32,22 +32,24 @@ All notable changes to this project will be documented in this file.
   - Significantly reduces memory usage while preserving boss kill detection functionality
 
 ## [1.0.6]
-### Performance
-- Continued optimising data caching
 
-###
-- Fixed monthly+ views not working
+### Performance
+- Continued optimizing data caching and query performance
+
+### Fixed
+- Fixed monthly and 6-month views not working correctly in XP over time charts
 
 ## [1.0.5]
 
 ### Added
-- Laravel Nightwatch
+- Laravel Nightwatch integration for browser testing
 
 ### Performance
 - Optimized memory usage in dashboard data loading
+- Improved query performance for player statistics
 
 ### Fixed
-- Fixed misc. Typescript errors
+- Fixed various TypeScript type errors and warnings
 
 ## [1.0.4]
 
@@ -71,37 +73,37 @@ All notable changes to this project will be documented in this file.
 - Fixed height jumping when switching between daily/weekly/monthly periods with no data
 - Improved pie chart display for single skill at 100% with centered icon and text
 
-## [1.0.2] 
+## [1.0.2]
 
 ### Fixed
-- Fixed leaderboard not displaying correctly (order)
-- Fixed timezone display inconsistencies
-- Resolved issues with player stat refresh scheduling
+- Fixed leaderboard not displaying players in correct order
+- Fixed timezone display inconsistencies across the application
+- Resolved issues with player stat refresh scheduling and timing
 
-## [1.0.1] 
+## [1.0.1]
 
 ### Added
-- Dark mode support
-- GitHub and portfolio links in navigation
-- Responsive design improvements
+- Dark mode support with system preference detection
+- GitHub and portfolio links in navigation menu
+- Responsive design improvements for mobile and tablet devices
 
 ### Fixed
 - Fixed Laravel default configuration issues
-- Fixed pie graph incorrectly displaying data
-- Various responsive layout adjustments
+- Fixed pie chart incorrectly displaying data and percentages
+- Various responsive layout adjustments and improvements
 
-## [1.0.0] 
+## [1.0.0]
 
 ### Added
 - Initial release of Archeio
-- Player statistics tracking
-- Dashboard with customizable drag-and-drop components
-- XP over time charts (line and bar charts)
+- Player statistics tracking and monitoring
+- Dashboard with customizable drag-and-drop component layout
+- XP over time charts with line and bar chart views
 - Activity tracking for level gains and XP milestones
-- Auto-refresh functionality for player stats
-- Multi-player support
+- Auto-refresh functionality for player statistics
+- Multi-player support and management
 - Integration with OSRS Hiscores API
-- User authentication and authorization
+- User authentication and authorization system
 - Player management via Artisan commands
 - Legacy data import functionality
 - API endpoints for player data access
