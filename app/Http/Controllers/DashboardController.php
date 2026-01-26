@@ -140,17 +140,14 @@ class DashboardController extends Controller
                 $skills = $latestStat->skills ?? [];
                 $activities = $latestStat->activities ?? [];
 
-                // Only include essential skill data (level, experience, rank for Overall only)
+                // Include essential skill data (level, experience, rank for all skills - needed for rankings component)
                 $essentialSkills = [];
                 foreach ($skills as $skillName => $skillData) {
                     $essentialSkills[$skillName] = [
                         'level' => $skillData['level'] ?? 0,
                         'experience' => $skillData['experience'] ?? 0,
+                        'rank' => $skillData['rank'] ?? null,
                     ];
-                    // Only include rank for Overall skill
-                    if ($skillName === 'Overall') {
-                        $essentialSkills[$skillName]['rank'] = $skillData['rank'] ?? null;
-                    }
                 }
 
                 // Only include boss activities - keep rank for latest stats (needed for display)

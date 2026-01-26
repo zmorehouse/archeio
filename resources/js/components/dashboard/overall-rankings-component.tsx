@@ -68,8 +68,13 @@ export function OverallRankingsComponent({
     const sortedPlayers = [...players]
         .filter((player) => player.skills?.[selectedSkill])
         .sort((a, b) => {
-            const aSkill = a.skills[selectedSkill];
-            const bSkill = b.skills[selectedSkill];
+            const aSkill = a.skills?.[selectedSkill];
+            const bSkill = b.skills?.[selectedSkill];
+            
+            // Safety check - if skill data is missing, skip sorting
+            if (!aSkill || !bSkill) {
+                return 0;
+            }
 
             let primaryComparison = 0;
             let secondaryComparison = 0;
@@ -189,7 +194,7 @@ export function OverallRankingsComponent({
                                         {formatXP(skill.experience)}
                                     </td>
                                     <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
-                                        {formatNumber(skill.rank)}
+                                        {skill.rank ? formatNumber(skill.rank) : 'N/A'}
                                     </td>
                                 </tr>
                             );
