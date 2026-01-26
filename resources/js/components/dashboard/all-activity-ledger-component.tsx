@@ -12,7 +12,8 @@ interface HistoricalStat {
     fetched_at: string;
     overall_experience: number;
     overall_level: number;
-    skills: Record<string, { rank: number; level: number; experience: number }>;
+    skills?: Record<string, { level: number; experience: number }>;
+    activities?: Record<string, { score: number }>;
 }
 
 interface AllActivityLedgerComponentProps {
@@ -29,7 +30,8 @@ export function AllActivityLedgerComponent({ players, historicalStats = {} }: Al
             fetched_at: string;
             overall_experience: number;
             overall_level: number;
-            skills: Record<string, { rank: number; level: number; experience: number }>;
+            skills?: Record<string, { level: number; experience: number }>;
+            activities?: Record<string, { score: number }>;
         }>> = {};
         
         // Check if historicalStats exists and is an object

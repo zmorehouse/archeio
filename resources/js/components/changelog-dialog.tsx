@@ -23,7 +23,7 @@ export function ChangelogDialog({ open, onOpenChange }: ChangelogDialogProps) {
             fetch('/api/changelog')
                 .then((res) => res.json())
                 .then((data) => {
-                    let content = data.content || '';
+                    const content = data.content || '';
                     // Strip the header lines: "# Changelog", blank line, and "All notable changes..." line
                     const lines = content.split('\n');
                     const filteredLines = lines.filter((line: string, index: number) => {

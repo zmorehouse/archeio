@@ -16,8 +16,8 @@ interface HistoricalStat {
     fetched_at: string;
     overall_experience: number;
     overall_level: number;
-    skills: Record<string, { rank: number; level: number; experience: number }>;
-    activities?: Record<string, { rank: number; score: number }>;
+    skills?: Record<string, { rank?: number; level: number; experience: number }>; // Only included for last 7 days
+    activities?: Record<string, { score: number }>; // Only included for last 7 days, rank not needed
 }
 
 interface Player {
@@ -53,25 +53,28 @@ export function detectActivityEvents(
                 const currentDate = new Date(currentStat.fetched_at);
 
                 // Detect level gains in skills
-                Object.keys(currentStat.skills).forEach(skillName => {
-                    if (skillName === 'Overall') return;
-                    
-                    const currentLevel = currentStat.skills[skillName]?.level || 0;
-                    const previousLevel = previousStat.skills[skillName]?.level || 0;
+                // Only check skills if they exist (only included for last 7 days)
+                if (currentStat.skills && previousStat.skills) {
+                    Object.keys(currentStat.skills).forEach(skillName => {
+                        if (skillName === 'Overall') return;
+                        
+                        const currentLevel = currentStat.skills[skillName]?.level || 0;
+                        const previousLevel = previousStat.skills[skillName]?.level || 0;
 
-                    if (currentLevel > previousLevel) {
-                        events.push({
-                            id: `${player.id}-${skillName}-${currentLevel}-${currentDate.getTime()}`,
-                            type: 'level_gain',
-                            playerId: player.id,
-                            playerName: player.name,
-                            timestamp: currentDate,
-                            description: `Gained level ${currentLevel} in ${skillName}`,
-                            skill: skillName,
-                            level: currentLevel,
-                        });
-                    }
-                });
+                        if (currentLevel > previousLevel) {
+                            events.push({
+                                id: `${player.id}-${skillName}-${currentLevel}-${currentDate.getTime()}`,
+                                type: 'level_gain',
+                                playerId: player.id,
+                                playerName: player.name,
+                                timestamp: currentDate,
+                                description: `Gained level ${currentLevel} in ${skillName}`,
+                                skill: skillName,
+                                level: currentLevel,
+                            });
+                        }
+                    });
+                }
 
                 // Detect total XP milestones (1mil increments)
                 const currentXP = currentStat.overall_experience;

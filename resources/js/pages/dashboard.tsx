@@ -5,7 +5,7 @@ import { useDashboardLayout } from '@/hooks/use-dashboard-layout';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Deferred, Head, router } from '@inertiajs/react';
+import { Deferred, Head, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, LayoutGrid, Columns2, Columns3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -34,13 +34,30 @@ interface DashboardProps {
         fetched_at: string;
         overall_experience: number;
         overall_level: number;
-        skills: Record<string, { rank: number; level: number; experience: number }>;
+        skills?: Record<string, { level: number; experience: number }>;
+        activities?: Record<string, { score: number }>;
     }>>;
 }
 
-export default function Dashboard({ players, historicalStats = {} }: DashboardProps) {
+export default function Dashboard({ players }: DashboardProps) {
+    const page = usePage();
     const { layout, toggleComponent, reorderComponents, updateLayout, resetLayout } =
         useDashboardLayout('dashboard');
+    const [deferredTimeout, setDeferredTimeout] = useState(false);
+    
+    // Timeout fallback for Firefox - if deferred props don't load within 10 seconds, show content anyway
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (page.props.historicalStats === undefined) {
+                setDeferredTimeout(true);
+            }
+        }, 10000);
+        
+        return () => clearTimeout(timer);
+    }, [page.props.historicalStats]);
+    
+    // Check if historicalStats is available (either loaded, deferred, or timed out)
+    const hasHistoricalStats = page.props.historicalStats !== undefined || deferredTimeout;
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [refreshProgress, setRefreshProgress] = useState(0);
@@ -254,19 +271,7 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
                         </div>
                     </div>
                 </div>
-                <Deferred
-                    data="historicalStats"
-                    fallback={
-                        <div className="flex items-center justify-center p-8">
-                            <div className="text-center">
-                                <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
-                                <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-                                    Loading historical stats...
-                                </p>
-                            </div>
-                        </div>
-                    }
-                >
+                {hasHistoricalStats ? (
                     <DashboardGrid
                         layout={{ ...layout, items: enabledItems }}
                         onLayoutChange={(newLayout) => updateLayout(() => newLayout)}
@@ -275,11 +280,44 @@ export default function Dashboard({ players, historicalStats = {} }: DashboardPr
                         {(componentId) => (
                             <ComponentRenderer
                                 componentId={componentId}
-                                props={{ players, historicalStats }}
+                                props={{ 
+                                    players, 
+                                    historicalStats: (page.props.historicalStats as typeof historicalStats) || {} 
+                                }}
                             />
                         )}
                     </DashboardGrid>
-                </Deferred>
+                ) : (
+                    <Deferred
+                        data="historicalStats"
+                        fallback={
+                            <div className="flex items-center justify-center p-8">
+                                <div className="text-center">
+                                    <RefreshCw className="mx-auto h-8 w-8 animate-spin text-primary" />
+                                    <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
+                                        Loading historical stats...
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    >
+                        <DashboardGrid
+                            layout={{ ...layout, items: enabledItems }}
+                            onLayoutChange={(newLayout) => updateLayout(() => newLayout)}
+                            columnCount={columnCount}
+                        >
+                            {(componentId) => (
+                                <ComponentRenderer
+                                    componentId={componentId}
+                                    props={{ 
+                                        players, 
+                                        historicalStats: (page.props.historicalStats as typeof historicalStats) || {} 
+                                    }}
+                                />
+                            )}
+                        </DashboardGrid>
+                    </Deferred>
+                )}
             </div>
 
             {/* Notification for manual refresh */}

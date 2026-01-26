@@ -8,7 +8,6 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -30,17 +29,6 @@ class HandleInertiaRequests extends Middleware
     public function version(Request $request): ?string
     {
         return parent::version($request);
-    }
-
-    /**
-     * Enable history encryption to compress large state objects and prevent
-     * NS_ERROR_ILLEGAL_VALUE errors in Firefox when history state is too large.
-     *
-     * @see https://inertiajs.com/security/history-encryption
-     */
-    public function encryptHistory(Request $request): bool
-    {
-        return true;
     }
 
     /**
@@ -68,43 +56,46 @@ class HandleInertiaRequests extends Middleware
                     'name' => $player->name,
                 ]);
             }),
-            'historicalStats' => Inertia::defer(fn () => $this->getHistoricalStats())->once(),
+            // historicalStats removed from global props - only load on pages that need it
             'appVersion' => fn () => $this->getLatestVersion(),
         ];
     }
 
     /**
-     * Downsamples historical stats progressively to reduce memory usage:
-     * - Last 14 days: Keep all records (full resolution for activity detection)
-     * - 14-30 days: Keep every 2nd record (50% reduction)
-     * - 30-90 days: Keep every 4th record (75% reduction)
+     * Downsamples historical stats aggressively to reduce memory usage:
+     * - Last 7 days: Keep every 2nd record (50% reduction)
+     * - 7-30 days: Keep every 4th record (75% reduction)
+     * - 30-90 days: Keep every 8th record (87.5% reduction)
      *
-     * Also filters activities to only boss-related ones for recent stats (last 14 days)
+     * Only includes essential data: fetched_at, overall_experience, overall_level
+     * Skills are only included for last 7 days, and only essential fields (level, experience)
+     * Activities are only included for last 7 days, and only boss-related ones
      */
     protected function downsampleAndProcessStats($stats): array
     {
         $now = now();
-        $fourteenDaysAgo = $now->copy()->subDays(14);
+        $sevenDaysAgo = $now->copy()->subDays(7);
         $thirtyDaysAgo = $now->copy()->subDays(30);
 
         $processed = [];
-        $index14Days = 0;  // Counter for 14-30 days period
+        $index7Days = 0;   // Counter for 7-30 days period
         $index30Days = 0;  // Counter for 30-90 days period
 
         foreach ($stats as $stat) {
             $fetchedAt = $stat->fetched_at;
 
             // Determine which period this stat falls into
-            if ($fetchedAt >= $fourteenDaysAgo) {
-                // Last 14 days: Keep all records (needed for activity detection)
-                $keep = true;
+            if ($fetchedAt >= $sevenDaysAgo) {
+                // Last 7 days: Keep every 2nd record
+                $keep = ($index7Days % 2 === 0);
+                $index7Days++;
             } elseif ($fetchedAt >= $thirtyDaysAgo) {
-                // 14-30 days: Keep every 2nd record
-                $keep = ($index14Days % 2 === 0);
-                $index14Days++;
-            } else {
-                // 30-90 days: Keep every 4th record
+                // 7-30 days: Keep every 4th record
                 $keep = ($index30Days % 4 === 0);
+                $index30Days++;
+            } else {
+                // 30-90 days: Keep every 8th record
+                $keep = ($index30Days % 8 === 0);
                 $index30Days++;
             }
 
@@ -113,12 +104,21 @@ class HandleInertiaRequests extends Middleware
                     'fetched_at' => $fetchedAt->toIso8601String(),
                     'overall_experience' => $stat->skills['Overall']['experience'] ?? 0,
                     'overall_level' => $stat->skills['Overall']['level'] ?? 0,
-                    'skills' => $stat->skills ?? [],
                 ];
 
-                // Only include activities for recent stats (last 14 days) to reduce memory usage
-                if ($fetchedAt >= $now->copy()->subDays(14)) {
-                    // Filter activities to only boss-related ones
+                // Only include skills for recent stats (last 7 days) and only essential fields
+                if ($fetchedAt >= $sevenDaysAgo) {
+                    $skills = $stat->skills ?? [];
+                    $essentialSkills = [];
+                    foreach ($skills as $skillName => $skillData) {
+                        $essentialSkills[$skillName] = [
+                            'level' => $skillData['level'] ?? 0,
+                            'experience' => $skillData['experience'] ?? 0,
+                        ];
+                    }
+                    $statData['skills'] = $essentialSkills;
+
+                    // Only include boss activities for last 7 days
                     $activities = $stat->activities ?? [];
                     $bossActivities = array_filter($activities, function ($activityName) {
                         $lowerName = strtolower($activityName);
@@ -146,7 +146,15 @@ class HandleInertiaRequests extends Middleware
                             str_contains($lowerName, 'saradomin') ||
                             str_contains($lowerName, 'zamorak');
                     }, ARRAY_FILTER_USE_KEY);
-                    $statData['activities'] = $bossActivities;
+
+                    // Only include score, not rank, to reduce data size
+                    $bossActivitiesMinimal = [];
+                    foreach ($bossActivities as $activityName => $activityData) {
+                        $bossActivitiesMinimal[$activityName] = [
+                            'score' => $activityData['score'] ?? 0,
+                        ];
+                    }
+                    $statData['activities'] = $bossActivitiesMinimal;
                 }
 
                 $processed[] = $statData;
@@ -159,16 +167,18 @@ class HandleInertiaRequests extends Middleware
     /**
      * Get historical stats for all players (last 90 days)
      * Cached for 5 minutes to reduce database load
+     * Only selects needed columns to reduce memory usage
      */
     protected function getHistoricalStats(): array
     {
         return Cache::remember('inertia.historical_stats', 300, function () {
-            $players = Player::all();
+            $players = Player::select('id')->get();
             $historicalStats = [];
 
             foreach ($players as $player) {
                 $stats = PlayerStat::where('player_id', $player->id)
                     ->where('fetched_at', '>=', now()->subDays(90))
+                    ->select('skills', 'activities', 'fetched_at')
                     ->orderBy('fetched_at', 'asc')
                     ->get();
 

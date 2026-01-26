@@ -29,7 +29,8 @@ export function AppSidebar() {
         fetched_at: string;
         overall_experience: number;
         overall_level: number;
-        skills: Record<string, { rank: number; level: number; experience: number }>;
+        skills?: Record<string, { level: number; experience: number }>;
+        activities?: Record<string, { score: number }>;
     }>>) || {}, [page.props.historicalStats]);
 
     const activityEvents = useMemo(() => {
@@ -38,7 +39,8 @@ export function AppSidebar() {
             fetched_at: string;
             overall_experience: number;
             overall_level: number;
-            skills: Record<string, { rank: number; level: number; experience: number }>;
+            skills?: Record<string, { level: number; experience: number }>;
+            activities?: Record<string, { score: number }>;
         }>> = {};
         
         // Check if historicalStats exists and is an object
