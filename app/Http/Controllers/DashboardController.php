@@ -11,13 +11,13 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     /**
-     * Downsamples historical stats aggressively to reduce memory usage:
+     * Downsamples historical stats to reduce memory usage while supporting monthly views:
      * - Last 7 days: Keep every 2nd record (50% reduction)
-     * - 7-30 days: Keep every 4th record (75% reduction)
-     * - 30-90 days: Keep every 8th record (87.5% reduction)
+     * - 7-30 days: Keep every 2nd record (50% reduction) - less aggressive for monthly views
+     * - 30-90 days: Keep every 4th record (75% reduction)
      *
      * Only includes essential data: fetched_at, overall_experience, overall_level
-     * Skills are only included for last 7 days, and only essential fields (level, experience)
+     * Skills are included for last 30 days (needed for monthly views), and only essential fields (level, experience)
      * Activities are only included for last 7 days, and only boss-related ones
      */
     protected function downsampleAndProcessStats($stats): array
@@ -27,8 +27,9 @@ class DashboardController extends Controller
         $thirtyDaysAgo = $now->copy()->subDays(30);
 
         $processed = [];
-        $index7Days = 0;   // Counter for 7-30 days period
-        $index30Days = 0;  // Counter for 30-90 days period
+        $index7Days = 0;   // Counter for last 7 days
+        $index30Days = 0;  // Counter for 7-30 days period
+        $index90Days = 0;  // Counter for 30-90 days period
 
         foreach ($stats as $stat) {
             $fetchedAt = $stat->fetched_at;
@@ -39,13 +40,13 @@ class DashboardController extends Controller
                 $keep = ($index7Days % 2 === 0);
                 $index7Days++;
             } elseif ($fetchedAt >= $thirtyDaysAgo) {
-                // 7-30 days: Keep every 4th record
-                $keep = ($index30Days % 4 === 0);
+                // 7-30 days: Keep every 2nd record (less aggressive for monthly views)
+                $keep = ($index30Days % 2 === 0);
                 $index30Days++;
             } else {
-                // 30-90 days: Keep every 8th record
-                $keep = ($index30Days % 8 === 0);
-                $index30Days++;
+                // 30-90 days: Keep every 4th record
+                $keep = ($index90Days % 4 === 0);
+                $index90Days++;
             }
 
             if ($keep) {
@@ -55,8 +56,8 @@ class DashboardController extends Controller
                     'overall_level' => $stat->skills['Overall']['level'] ?? 0,
                 ];
 
-                // Only include skills for recent stats (last 7 days) and only essential fields
-                if ($fetchedAt >= $sevenDaysAgo) {
+                // Include skills for last 30 days (needed for monthly views) and only essential fields
+                if ($fetchedAt >= $thirtyDaysAgo) {
                     $skills = $stat->skills ?? [];
                     $essentialSkills = [];
                     foreach ($skills as $skillName => $skillData) {
