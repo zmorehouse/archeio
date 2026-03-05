@@ -1,5 +1,6 @@
 import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel, xpToReachLevel } from '@/lib/runescape-utils';
 import { isBossActivity } from '@/lib/boss-activities';
+import { BOSS_FEATURES_ENABLED } from '@/lib/feature-flags';
 
 interface Skill {
     rank: number;
@@ -77,16 +78,17 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
         }
     });
 
-    // Find most killed boss (highest score in activities)
+    // Find most killed boss (skip when boss features disabled for performance)
     let mostKilledBoss: { name: string; score: number } | null = null;
-    let maxBossScore = 0;
-
-    Object.entries(activities).forEach(([activityName, activity]) => {
-        if (isBossActivity(activityName) && activity.score > maxBossScore) {
-            maxBossScore = activity.score;
-            mostKilledBoss = { name: activityName, score: activity.score };
-        }
-    });
+    if (BOSS_FEATURES_ENABLED) {
+        let maxBossScore = 0;
+        Object.entries(activities).forEach(([activityName, activity]) => {
+            if (isBossActivity(activityName) && activity.score > maxBossScore) {
+                maxBossScore = activity.score;
+                mostKilledBoss = { name: activityName, score: activity.score };
+            }
+        });
+    }
 
     // Find skills closest to 99
     const skillsTo99 = Object.entries(skills)
@@ -185,7 +187,7 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
         });
     }
 
-    if (mostKilledBoss) {
+    if (BOSS_FEATURES_ENABLED && mostKilledBoss) {
         stats.push({
             label: 'Most Killed Boss',
             value: (

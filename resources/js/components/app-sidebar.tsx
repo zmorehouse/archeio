@@ -19,6 +19,7 @@ import { LayoutGrid } from 'lucide-react';
 import { useMemo } from 'react';
 import { detectActivityEvents } from '@/lib/activity-detector';
 import { ActivityLedger } from '@/components/activity-ledger';
+import { BOSS_FEATURES_ENABLED } from '@/lib/feature-flags';
 import AppLogo from './app-logo';
 
 export function AppSidebar() {
@@ -58,7 +59,9 @@ export function AppSidebar() {
         
         // Only call detectActivityEvents if we have valid data
         if (players.length > 0 && Object.keys(safeHistoricalStats).length > 0) {
-            return detectActivityEvents(players, safeHistoricalStats).slice(0, 5);
+            const events = detectActivityEvents(players, safeHistoricalStats);
+            const filtered = BOSS_FEATURES_ENABLED ? events : events.filter(e => e.type !== 'boss_kill');
+            return filtered.slice(0, 5);
         }
         
         return [];

@@ -1,4 +1,5 @@
 import { isBossActivity } from './boss-activities';
+import { BOSS_FEATURES_ENABLED } from './feature-flags';
 
 export interface ActivityEvent {
     id: string;
@@ -118,20 +119,17 @@ export function detectActivityEvents(
                     });
                 }
 
-                // Detect boss kills
-                const currentActivities = currentStat.activities || {};
-                const previousActivities = previousStat.activities || {};
+                // Detect boss kills (skip when boss features disabled for performance)
+                if (BOSS_FEATURES_ENABLED) {
+                    const currentActivities = currentStat.activities || {};
+                    const previousActivities = previousStat.activities || {};
 
-                // Check for boss activities that have increased
-                Object.keys(currentActivities).forEach(activityName => {
-                    const currentScore = currentActivities[activityName]?.score || 0;
-                    const previousScore = previousActivities[activityName]?.score || 0;
+                    Object.keys(currentActivities).forEach(activityName => {
+                        const currentScore = currentActivities[activityName]?.score || 0;
+                        const previousScore = previousActivities[activityName]?.score || 0;
 
-                    if (currentScore > previousScore) {
-                        // Check if this is a boss activity
-                        if (isBossActivity(activityName)) {
+                        if (currentScore > previousScore && isBossActivity(activityName)) {
                             const killCount = currentScore - previousScore;
-                            // Format boss name (capitalize first letter of each word)
                             const bossName = activityName
                                 .split(/\s+/)
                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -149,8 +147,8 @@ export function detectActivityEvents(
                                 bossName: bossName,
                             });
                         }
-                    }
-                });
+                    });
+                }
             }
 
             previousStat = currentStat;
