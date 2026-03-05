@@ -1,4 +1,5 @@
 import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel, xpToReachLevel } from '@/lib/runescape-utils';
+import { isBossActivity } from '@/lib/boss-activities';
 
 interface Skill {
     rank: number;
@@ -81,32 +82,7 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
     let maxBossScore = 0;
 
     Object.entries(activities).forEach(([activityName, activity]) => {
-        // Filter for boss activities (common boss names or activities with "kill" in them)
-        // Also check for common boss patterns
-        const isBoss = activityName.toLowerCase().includes('boss') ||
-            activityName.toLowerCase().includes('kill') ||
-            activityName.toLowerCase().includes('chest') ||
-            activityName.toLowerCase().includes('chambers') ||
-            activityName.toLowerCase().includes('theatre') ||
-            activityName.toLowerCase().includes('inferno') ||
-            activityName.toLowerCase().includes('gauntlet') ||
-            activityName.toLowerCase().includes('nightmare') ||
-            activityName.toLowerCase().includes('nex') ||
-            activityName.toLowerCase().includes('zulrah') ||
-            activityName.toLowerCase().includes('vorkath') ||
-            activityName.toLowerCase().includes('cerberus') ||
-            activityName.toLowerCase().includes('kraken') ||
-            activityName.toLowerCase().includes('sire') ||
-            activityName.toLowerCase().includes('hydra') ||
-            activityName.toLowerCase().includes('barrows') ||
-            activityName.toLowerCase().includes('corp') ||
-            activityName.toLowerCase().includes('zilyana') ||
-            activityName.toLowerCase().includes('bandos') ||
-            activityName.toLowerCase().includes('armadyl') ||
-            activityName.toLowerCase().includes('saradomin') ||
-            activityName.toLowerCase().includes('zamorak');
-
-        if (isBoss && activity.score > maxBossScore) {
+        if (isBossActivity(activityName) && activity.score > maxBossScore) {
             maxBossScore = activity.score;
             mostKilledBoss = { name: activityName, score: activity.score };
         }

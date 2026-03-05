@@ -1,3 +1,5 @@
+import { isBossActivity } from './boss-activities';
+
 export interface ActivityEvent {
     id: string;
     type: 'level_gain' | 'xp_milestone' | 'total_level_milestone' | 'boss_kill';
@@ -127,30 +129,7 @@ export function detectActivityEvents(
 
                     if (currentScore > previousScore) {
                         // Check if this is a boss activity
-                        const isBoss = activityName.toLowerCase().includes('boss') ||
-                            activityName.toLowerCase().includes('kill') ||
-                            activityName.toLowerCase().includes('chest') ||
-                            activityName.toLowerCase().includes('chambers') ||
-                            activityName.toLowerCase().includes('theatre') ||
-                            activityName.toLowerCase().includes('inferno') ||
-                            activityName.toLowerCase().includes('gauntlet') ||
-                            activityName.toLowerCase().includes('nightmare') ||
-                            activityName.toLowerCase().includes('nex') ||
-                            activityName.toLowerCase().includes('zulrah') ||
-                            activityName.toLowerCase().includes('vorkath') ||
-                            activityName.toLowerCase().includes('cerberus') ||
-                            activityName.toLowerCase().includes('kraken') ||
-                            activityName.toLowerCase().includes('sire') ||
-                            activityName.toLowerCase().includes('hydra') ||
-                            activityName.toLowerCase().includes('barrows') ||
-                            activityName.toLowerCase().includes('corp') ||
-                            activityName.toLowerCase().includes('zilyana') ||
-                            activityName.toLowerCase().includes('bandos') ||
-                            activityName.toLowerCase().includes('armadyl') ||
-                            activityName.toLowerCase().includes('saradomin') ||
-                            activityName.toLowerCase().includes('zamorak');
-
-                        if (isBoss) {
+                        if (isBossActivity(activityName)) {
                             const killCount = currentScore - previousScore;
                             // Format boss name (capitalize first letter of each word)
                             const bossName = activityName

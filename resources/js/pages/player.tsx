@@ -56,21 +56,7 @@ export default function PlayerPage({ player, stats }: PlayerProps) {
     // All hooks must be called before any conditional returns
     const { layout, toggleComponent, reorderComponents, updateLayout, resetLayout } =
         useDashboardLayout('player', playerComponentRegistry);
-    const [deferredTimeout, setDeferredTimeout] = useState(false);
-    
-    // Timeout fallback for Firefox - if deferred props don't load within 10 seconds, show content anyway
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (page.props.playerHistoricalStats === undefined) {
-                setDeferredTimeout(true);
-            }
-        }, 10000);
-        
-        return () => clearTimeout(timer);
-    }, [page.props.playerHistoricalStats]);
-    
-    // Check if playerHistoricalStats is available (either loaded, deferred, or timed out)
-    const hasPlayerHistoricalStats = page.props.playerHistoricalStats !== undefined || deferredTimeout;
+    const hasPlayerHistoricalStats = page.props.playerHistoricalStats !== undefined;
     
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showNotification, setShowNotification] = useState(false);

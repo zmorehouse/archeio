@@ -64,6 +64,7 @@ class RuneScapeApiService
         'Araxxor',
         'Artio',
         'Barrows Chests',
+        'Brutus',
         'Bryophyta',
         'Callisto',
         'Cal\'varion',
@@ -127,6 +128,22 @@ class RuneScapeApiService
         'Zalcano',
         'Zulrah',
     ];
+
+    /**
+     * Get the list of boss activities (everything from "Abyssal Sire" onwards)
+     *
+     * @return array<string>
+     */
+    public static function getBossActivities(): array
+    {
+        $bossStartIndex = array_search('Abyssal Sire', self::ACTIVITIES, true);
+        
+        if ($bossStartIndex === false) {
+            return [];
+        }
+        
+        return array_slice(self::ACTIVITIES, $bossStartIndex);
+    }
 
     /**
      * Fetch player hiscores data from RuneScape API
