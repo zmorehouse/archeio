@@ -6,6 +6,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Symfony\Component\ErrorHandler\Error\FatalError;
 
 // Increase memory limit for Laravel Cloud (handles large JSON payloads)
 // This is set early in the bootstrap process before any heavy operations
@@ -24,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Railway (and most PaaS) terminate TLS at the edge and forward to the app over HTTP.
+        // Trust the proxy headers so Laravel correctly detects HTTPS and generates https:// asset URLs.
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_AWS_ELB);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
@@ -36,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Enhance memory error reporting with detailed context for Nightwatch
         // Use report() to log detailed context before rendering
         $exceptions->report(function (Throwable $e) {
-            if ($e instanceof \Symfony\Component\ErrorHandler\Error\FatalError) {
+            if ($e instanceof FatalError) {
                 if (str_contains($e->getMessage(), 'memory') || str_contains($e->getMessage(), 'Memory')) {
                     $formatBytes = function (int $bytes, int $precision = 2): string {
                         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -77,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Enhance the exception message for display in Nightwatch
         $exceptions->render(function (Throwable $e, $request) {
-            if ($e instanceof \Symfony\Component\ErrorHandler\Error\FatalError) {
+            if ($e instanceof FatalError) {
                 if (str_contains($e->getMessage(), 'memory') || str_contains($e->getMessage(), 'Memory')) {
                     $formatBytes = function (int $bytes, int $precision = 2): string {
                         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -125,7 +131,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     );
 
                     // Throw new exception with enhanced message for Nightwatch
-                    throw new \RuntimeException($enhancedMessage, 0, $e);
+                    throw new RuntimeException($enhancedMessage, 0, $e);
                 }
             }
         });
