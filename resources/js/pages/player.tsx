@@ -19,8 +19,6 @@ interface Skill {
 interface PlayerStats {
     skills: Record<string, Skill>;
     fetched_at: string;
-    overall_experience?: number;
-    overall_level?: number;
 }
 
 interface Player {
