@@ -81,7 +81,7 @@ export function OverallRankingsComponent({
             
             switch (sortField) {
                 case 'rank':
-                    primaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity);
+                    primaryComparison = (aSkill.rank > 0 ? aSkill.rank : Infinity) - (bSkill.rank > 0 ? bSkill.rank : Infinity);
                     // If ranks are equal, use secondary sort: Level > Exp > Username
                     if (primaryComparison === 0) {
                         secondaryComparison = bSkill.level - aSkill.level; // Higher level first (desc)
@@ -101,7 +101,7 @@ export function OverallRankingsComponent({
                         if (secondaryComparison === 0) {
                             secondaryComparison = bSkill.experience - aSkill.experience; // Higher exp first (desc)
                             if (secondaryComparison === 0) {
-                                secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                                secondaryComparison = (aSkill.rank > 0 ? aSkill.rank : Infinity) - (bSkill.rank > 0 ? bSkill.rank : Infinity); // Lower rank first (asc)
                             }
                         }
                     }
@@ -112,7 +112,7 @@ export function OverallRankingsComponent({
                     if (primaryComparison === 0) {
                         secondaryComparison = bSkill.experience - aSkill.experience; // Higher exp first (desc)
                         if (secondaryComparison === 0) {
-                            secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                            secondaryComparison = (aSkill.rank > 0 ? aSkill.rank : Infinity) - (bSkill.rank > 0 ? bSkill.rank : Infinity); // Lower rank first (asc)
                             if (secondaryComparison === 0) {
                                 secondaryComparison = a.name.localeCompare(b.name); // Alphabetical username (asc)
                             }
@@ -125,7 +125,7 @@ export function OverallRankingsComponent({
                     if (primaryComparison === 0) {
                         secondaryComparison = bSkill.level - aSkill.level; // Higher level first (desc)
                         if (secondaryComparison === 0) {
-                            secondaryComparison = (aSkill.rank || Infinity) - (bSkill.rank || Infinity); // Lower rank first (asc)
+                            secondaryComparison = (aSkill.rank > 0 ? aSkill.rank : Infinity) - (bSkill.rank > 0 ? bSkill.rank : Infinity); // Lower rank first (asc)
                             if (secondaryComparison === 0) {
                                 secondaryComparison = a.name.localeCompare(b.name); // Alphabetical username (asc)
                             }
@@ -194,7 +194,7 @@ export function OverallRankingsComponent({
                                         {formatXP(skill.experience)}
                                     </td>
                                     <td className="px-4 py-2 text-neutral-500 dark:text-neutral-400">
-                                        {skill.rank ? formatNumber(skill.rank) : 'N/A'}
+                                        {skill.rank && skill.rank > 0 ? formatNumber(skill.rank) : 'N/A'}
                                     </td>
                                 </tr>
                             );

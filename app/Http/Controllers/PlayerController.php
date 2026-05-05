@@ -11,25 +11,28 @@ use Inertia\Response;
 class PlayerController extends Controller
 {
     /**
-     * Downsamples historical stats to reduce memory usage while supporting monthly views:
-     * - Last 7 days: Keep every 2nd record (50% reduction)
-     * - 7-30 days: Keep every 2nd record (50% reduction) - less aggressive for monthly views
-     * - 30-90 days: Keep every 4th record (75% reduction)
+     * Downsamples historical stats to reduce memory usage while supporting monthly/yearly views.
      *
-     * Only includes essential data: fetched_at, overall_experience, overall_level
-     * Skills are included for last 30 days (needed for monthly views), and only essential fields (level, experience)
-     * Activities are not included (boss functionality removed to reduce payload size)
+     * Returned payload includes only:
+     * - fetched_at
+     * - overall_experience
+     * - overall_level
+     * - skills (level + experience only)
+     *
+     * Activities are not included (boss functionality removed).
      */
     protected function downsampleAndProcessStats($stats): array
     {
         $now = now();
         $sevenDaysAgo = $now->copy()->subDays(7);
         $thirtyDaysAgo = $now->copy()->subDays(30);
+        $ninetyDaysAgo = $now->copy()->subDays(90);
 
         $processed = [];
         $index7Days = 0;   // Counter for last 7 days
         $index30Days = 0;  // Counter for 7-30 days period
         $index90Days = 0;  // Counter for 30-90 days period
+        $indexYear = 0;    // Counter for 90d-1y period
 
         foreach ($stats as $stat) {
             $fetchedAt = $stat->fetched_at;
@@ -43,31 +46,50 @@ class PlayerController extends Controller
                 // 7-30 days: Keep every 2nd record (less aggressive for monthly views)
                 $keep = ($index30Days % 2 === 0);
                 $index30Days++;
-            } else {
+            } elseif ($fetchedAt >= $ninetyDaysAgo) {
                 // 30-90 days: Keep every 4th record
                 $keep = ($index90Days % 4 === 0);
                 $index90Days++;
+            } else {
+                // 90d-1y: Keep every 7th record (weekly-ish)
+                $keep = ($indexYear % 7 === 0);
+                $indexYear++;
             }
 
             if ($keep) {
+                $skills = $stat->skills ?? [];
+                $overallExperience = $skills['Overall']['experience'] ?? null;
+                $overallLevel = $skills['Overall']['level'] ?? null;
+
+                if ($overallExperience === null || $overallLevel === null) {
+                    $overallExperience = 0;
+                    $overallLevel = 0;
+
+                    foreach ($skills as $skillName => $skillData) {
+                        if ($skillName === 'Overall') {
+                            continue;
+                        }
+
+                        $overallExperience += $skillData['experience'] ?? 0;
+                        $overallLevel += $skillData['level'] ?? 0;
+                    }
+                }
+
                 $statData = [
                     'fetched_at' => $fetchedAt->toIso8601String(),
-                    'overall_experience' => $stat->skills['Overall']['experience'] ?? 0,
-                    'overall_level' => $stat->skills['Overall']['level'] ?? 0,
+                    'overall_experience' => $overallExperience,
+                    'overall_level' => $overallLevel,
                 ];
 
-                // Include skills for last 30 days (needed for monthly views) and only essential fields
-                if ($fetchedAt >= $thirtyDaysAgo) {
-                    $skills = $stat->skills ?? [];
-                    $essentialSkills = [];
-                    foreach ($skills as $skillName => $skillData) {
-                        $essentialSkills[$skillName] = [
-                            'level' => $skillData['level'] ?? 0,
-                            'experience' => $skillData['experience'] ?? 0,
-                        ];
-                    }
-                    $statData['skills'] = $essentialSkills;
+                // Always include essential skills (needed for breakdown charts across all periods)
+                $essentialSkills = [];
+                foreach ($skills as $skillName => $skillData) {
+                    $essentialSkills[$skillName] = [
+                        'level' => $skillData['level'] ?? 0,
+                        'experience' => $skillData['experience'] ?? 0,
+                    ];
                 }
+                $statData['skills'] = $essentialSkills;
 
                 $processed[] = $statData;
             }
@@ -117,6 +139,14 @@ class PlayerController extends Controller
                 ],
                 'stats' => [
                     'skills' => $essentialSkills,
+                    'overall_level' => $skills['Overall']['level'] ?? array_sum(array_map(
+                        fn (array $skillData): int => $skillData['level'] ?? 0,
+                        array_filter($skills, fn (string $skillName): bool => $skillName !== 'Overall', ARRAY_FILTER_USE_KEY)
+                    )),
+                    'overall_experience' => $skills['Overall']['experience'] ?? array_sum(array_map(
+                        fn (array $skillData): int => $skillData['experience'] ?? 0,
+                        array_filter($skills, fn (string $skillName): bool => $skillName !== 'Overall', ARRAY_FILTER_USE_KEY)
+                    )),
                     'fetched_at' => $latestStat->fetched_at->toIso8601String(),
                 ],
             ];
@@ -127,9 +157,9 @@ class PlayerController extends Controller
             $cacheKey = "player.{$playerModel->id}.historical_stats";
 
             return Cache::remember($cacheKey, 300, function () use ($playerModel) {
-                // Get historical stats for this player (last 90 days) with aggressive downsampling
+                // Get historical stats for this player (last year) with aggressive downsampling
                 $stats = PlayerStat::where('player_id', $playerModel->id)
-                    ->where('fetched_at', '>=', now()->subDays(90))
+                    ->where('fetched_at', '>=', now()->subYear())
                     ->select('skills', 'fetched_at')
                     ->orderBy('fetched_at', 'asc')
                     ->get();
