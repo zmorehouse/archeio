@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { isBossActivity } from '@/lib/boss-activities';
 
 interface Activity {
     rank: number;
@@ -48,6 +47,32 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
     };
 }
 
+// Check if an activity is a boss
+function isBossActivity(activityName: string): boolean {
+    const lowerName = activityName.toLowerCase();
+    return lowerName.includes('boss') ||
+        lowerName.includes('kill') ||
+        lowerName.includes('chest') ||
+        lowerName.includes('chambers') ||
+        lowerName.includes('theatre') ||
+        lowerName.includes('inferno') ||
+        lowerName.includes('gauntlet') ||
+        lowerName.includes('nightmare') ||
+        lowerName.includes('nex') ||
+        lowerName.includes('zulrah') ||
+        lowerName.includes('vorkath') ||
+        lowerName.includes('cerberus') ||
+        lowerName.includes('kraken') ||
+        lowerName.includes('sire') ||
+        lowerName.includes('hydra') ||
+        lowerName.includes('barrows') ||
+        lowerName.includes('corp') ||
+        lowerName.includes('zilyana') ||
+        lowerName.includes('bandos') ||
+        lowerName.includes('armadyl') ||
+        lowerName.includes('saradomin') ||
+        lowerName.includes('zamorak');
+}
 
 // Generate a color for a boss based on its name
 function getBossColor(bossName: string): string {

@@ -10,14 +10,6 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, LayoutGrid, Columns2, Columns3 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-type HistoricalStats = Record<number, Array<{
-    fetched_at: string;
-    overall_experience: number;
-    overall_level: number;
-    skills?: Record<string, { level: number; experience: number }>;
-    activities?: Record<string, { score: number }>;
-}>>;
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -51,7 +43,21 @@ export default function Dashboard({ players }: DashboardProps) {
     const page = usePage();
     const { layout, toggleComponent, reorderComponents, updateLayout, resetLayout } =
         useDashboardLayout('dashboard');
-    const hasHistoricalStats = page.props.historicalStats !== undefined;
+    const [deferredTimeout, setDeferredTimeout] = useState(false);
+    
+    // Timeout fallback for Firefox - if deferred props don't load within 10 seconds, show content anyway
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (page.props.historicalStats === undefined) {
+                setDeferredTimeout(true);
+            }
+        }, 10000);
+        
+        return () => clearTimeout(timer);
+    }, [page.props.historicalStats]);
+    
+    // Check if historicalStats is available (either loaded, deferred, or timed out)
+    const hasHistoricalStats = page.props.historicalStats !== undefined || deferredTimeout;
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showNotification, setShowNotification] = useState(false);
     const [refreshProgress, setRefreshProgress] = useState(0);
@@ -276,7 +282,7 @@ export default function Dashboard({ players }: DashboardProps) {
                                 componentId={componentId}
                                 props={{ 
                                     players, 
-                                    historicalStats: (page.props.historicalStats as HistoricalStats) || {} 
+                                    historicalStats: (page.props.historicalStats as typeof historicalStats) || {} 
                                 }}
                             />
                         )}
@@ -305,7 +311,7 @@ export default function Dashboard({ players }: DashboardProps) {
                                     componentId={componentId}
                                     props={{ 
                                         players, 
-                                        historicalStats: (page.props.historicalStats as HistoricalStats) || {} 
+                                        historicalStats: (page.props.historicalStats as typeof historicalStats) || {} 
                                     }}
                                 />
                             )}

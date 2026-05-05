@@ -16,7 +16,6 @@ import { PlayerActivityLedgerComponent } from './player-activity-ledger-componen
 import { AllActivityLedgerComponent } from './all-activity-ledger-component';
 import { BossKillsPieComponent } from './boss-kills-pie-component';
 import { PlayerBossKillsComponent } from './player-boss-kills-component';
-import { BOSS_FEATURES_ENABLED } from '@/lib/feature-flags';
 
 interface ComponentRendererProps {
     componentId: string;
@@ -51,7 +50,7 @@ export function ComponentRenderer({
         case 'all-activity-ledger':
             return <AllActivityLedgerComponent players={props.players || []} historicalStats={props.historicalStats || {}} />;
         case 'boss-kills-pie':
-            return BOSS_FEATURES_ENABLED ? <BossKillsPieComponent players={props.players || []} /> : null;
+            return <BossKillsPieComponent players={props.players || []} />;
         case 'player-levels':
             return <PlayerLevelsComponent skills={props.skills || {}} />;
         case 'player-xp-over-time':
@@ -78,7 +77,7 @@ export function ComponentRenderer({
                 historicalStats={props.historicalStats || []} 
             />;
         case 'player-boss-kills':
-            return BOSS_FEATURES_ENABLED ? <PlayerBossKillsComponent activities={props.activities || {}} /> : null;
+            return <PlayerBossKillsComponent activities={props.activities || {}} />;
         default:
             return (
                 <div className="text-center text-neutral-500">

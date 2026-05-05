@@ -2,14 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.9]
-
-### Added
-- New boss **Brutus** added to hiscores activity list (API and frontend)
-
-### Fixed
-- Removed 10-second timeout fallback for deferred props on dashboard and player pages so historical stats load correctly in Firefox instead of showing content without data
-
 ## [1.0.8]
 
 ### Performance

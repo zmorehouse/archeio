@@ -1,6 +1,4 @@
 import { formatXP, getSkillIconPath, SKILL_ORDER, xpForNextLevel, xpToReachLevel } from '@/lib/runescape-utils';
-import { isBossActivity } from '@/lib/boss-activities';
-import { BOSS_FEATURES_ENABLED } from '@/lib/feature-flags';
 
 interface Skill {
     rank: number;
@@ -78,17 +76,41 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
         }
     });
 
-    // Find most killed boss (skip when boss features disabled for performance)
+    // Find most killed boss (highest score in activities)
     let mostKilledBoss: { name: string; score: number } | null = null;
-    if (BOSS_FEATURES_ENABLED) {
-        let maxBossScore = 0;
-        Object.entries(activities).forEach(([activityName, activity]) => {
-            if (isBossActivity(activityName) && activity.score > maxBossScore) {
-                maxBossScore = activity.score;
-                mostKilledBoss = { name: activityName, score: activity.score };
-            }
-        });
-    }
+    let maxBossScore = 0;
+
+    Object.entries(activities).forEach(([activityName, activity]) => {
+        // Filter for boss activities (common boss names or activities with "kill" in them)
+        // Also check for common boss patterns
+        const isBoss = activityName.toLowerCase().includes('boss') ||
+            activityName.toLowerCase().includes('kill') ||
+            activityName.toLowerCase().includes('chest') ||
+            activityName.toLowerCase().includes('chambers') ||
+            activityName.toLowerCase().includes('theatre') ||
+            activityName.toLowerCase().includes('inferno') ||
+            activityName.toLowerCase().includes('gauntlet') ||
+            activityName.toLowerCase().includes('nightmare') ||
+            activityName.toLowerCase().includes('nex') ||
+            activityName.toLowerCase().includes('zulrah') ||
+            activityName.toLowerCase().includes('vorkath') ||
+            activityName.toLowerCase().includes('cerberus') ||
+            activityName.toLowerCase().includes('kraken') ||
+            activityName.toLowerCase().includes('sire') ||
+            activityName.toLowerCase().includes('hydra') ||
+            activityName.toLowerCase().includes('barrows') ||
+            activityName.toLowerCase().includes('corp') ||
+            activityName.toLowerCase().includes('zilyana') ||
+            activityName.toLowerCase().includes('bandos') ||
+            activityName.toLowerCase().includes('armadyl') ||
+            activityName.toLowerCase().includes('saradomin') ||
+            activityName.toLowerCase().includes('zamorak');
+
+        if (isBoss && activity.score > maxBossScore) {
+            maxBossScore = activity.score;
+            mostKilledBoss = { name: activityName, score: activity.score };
+        }
+    });
 
     // Find skills closest to 99
     const skillsTo99 = Object.entries(skills)
@@ -187,7 +209,7 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
         });
     }
 
-    if (BOSS_FEATURES_ENABLED && mostKilledBoss) {
+    if (mostKilledBoss) {
         stats.push({
             label: 'Most Killed Boss',
             value: (

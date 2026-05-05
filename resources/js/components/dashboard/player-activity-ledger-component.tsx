@@ -1,6 +1,5 @@
 import { detectActivityEvents } from '@/lib/activity-detector';
 import { ActivityLedger } from '@/components/activity-ledger';
-import { BOSS_FEATURES_ENABLED } from '@/lib/feature-flags';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -38,11 +37,9 @@ export function PlayerActivityLedgerComponent({
         };
         
         // Get all events for this player
-        let allEvents = detectActivityEvents(players, statsRecord)
+        const allEvents = detectActivityEvents(players, statsRecord)
             .filter(event => event.playerId === playerId);
-        if (!BOSS_FEATURES_ENABLED) {
-            allEvents = allEvents.filter(e => e.type !== 'boss_kill');
-        }
+        
         // Sort by timestamp (most recent first)
         return allEvents
             .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

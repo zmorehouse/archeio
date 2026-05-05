@@ -97,8 +97,8 @@ export const componentRegistry: ComponentRegistry = {
     'boss-kills-pie': {
         id: 'boss-kills-pie',
         title: 'Boss Kills Distribution',
-        description: 'Percentage breakdown of boss kills across all players (temporarily disabled)',
-        defaultEnabled: false,
+        description: 'Percentage breakdown of boss kills across all players',
+        defaultEnabled: true,
         defaultSize: { w: 5, h: 4 },
         minSize: { w: 4, h: 3 },
     },
