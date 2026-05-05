@@ -41,7 +41,7 @@ Hiscores data is not truly real-time — stats only update once a player logs ou
 
 ## Tech Stack
 
-- **Backend**: Laravel 12, PHP 8.2+
+- **Backend**: Laravel 12, PHP 8.4+
 - **Frontend**: React 19, TypeScript, Tailwind CSS
 - **Framework**: Inertia.js
 - **Database**: SQLite 
@@ -51,7 +51,7 @@ Hiscores data is not truly real-time — stats only update once a player logs ou
 
 Before you begin, ensure you have:
 
-- PHP 8.2 or higher
+- PHP 8.4 or higher
 - Composer
 - Node.js 18+ and npm
 - Git
