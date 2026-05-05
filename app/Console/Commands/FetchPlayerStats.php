@@ -7,7 +7,6 @@ use App\Models\PlayerStat;
 use App\Services\RuneScapeApiService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class FetchPlayerStats extends Command
 {
@@ -51,6 +50,7 @@ class FetchPlayerStats extends Command
             if ($data === null) {
                 $this->error("  Failed to fetch data for {$player->name}");
                 $failed++;
+
                 continue;
             }
 
@@ -60,8 +60,9 @@ class FetchPlayerStats extends Command
             // Check if we already have this exact data
             $latestStat = $player->latestStat();
             if ($latestStat && $latestStat->data_hash === $dataHash) {
-                $this->line("  No changes detected, skipping...");
+                $this->line('  No changes detected, skipping...');
                 $skipped++;
+
                 continue;
             }
 
@@ -69,7 +70,7 @@ class FetchPlayerStats extends Command
             PlayerStat::create([
                 'player_id' => $player->id,
                 'skills' => $data['skills'],
-                'activities' => $data['activities'],
+                'activities' => [],
                 'data_hash' => $dataHash,
                 'fetched_at' => now(),
             ]);
@@ -86,17 +87,19 @@ class FetchPlayerStats extends Command
 
         // Clear caches if any stats were stored
         if ($stored > 0) {
-            $this->info("Clearing caches...");
+            $this->info('Clearing caches...');
             Cache::forget('dashboard.data');
+            Cache::forget('dashboard.historical_stats');
             Cache::forget('inertia.historical_stats');
             Cache::forget('inertia.players');
-            
+
             // Clear all player page caches
             foreach ($players as $player) {
                 Cache::forget("player.{$player->id}.data");
+                Cache::forget("player.{$player->id}.historical_stats");
                 Cache::forget("api.player.{$player->id}.stats");
             }
-            $this->info("Caches cleared.");
+            $this->info('Caches cleared.');
         }
 
         return Command::SUCCESS;
@@ -110,9 +113,8 @@ class FetchPlayerStats extends Command
         // Create a normalized copy for hashing
         $normalized = [
             'skills' => $this->sortRecursive($data['skills']),
-            'activities' => $this->sortRecursive($data['activities']),
         ];
-        
+
         return hash('sha256', json_encode($normalized));
     }
 
@@ -127,6 +129,7 @@ class FetchPlayerStats extends Command
                 $array[$key] = $this->sortRecursive($value);
             }
         }
+
         return $array;
     }
 }

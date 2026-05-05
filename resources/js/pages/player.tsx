@@ -16,14 +16,8 @@ interface Skill {
     experience: number;
 }
 
-interface Activity {
-    rank: number;
-    score: number;
-}
-
 interface PlayerStats {
     skills: Record<string, Skill>;
-    activities: Record<string, Activity>;
     fetched_at: string;
 }
 
@@ -40,7 +34,6 @@ interface PlayerProps {
         overall_experience: number;
         overall_level: number;
         skills?: Record<string, { level: number; experience: number }>;
-        activities?: Record<string, { score: number }>;
     }>;
 }
 
@@ -298,7 +291,6 @@ export default function PlayerPage({ player, stats }: PlayerProps) {
                                     playerId: player.id,
                                     playerName: player.name,
                                     skills: stats.skills,
-                                    activities: stats.activities,
                                     historicalStats: (page.props.playerHistoricalStats as typeof playerHistoricalStats) || [],
                                 }}
                             />
@@ -330,7 +322,6 @@ export default function PlayerPage({ player, stats }: PlayerProps) {
                                         playerId: player.id,
                                         playerName: player.name,
                                         skills: stats.skills,
-                                        activities: stats.activities,
                                         historicalStats: (page.props.playerHistoricalStats as typeof playerHistoricalStats) || [],
                                     }}
                                 />

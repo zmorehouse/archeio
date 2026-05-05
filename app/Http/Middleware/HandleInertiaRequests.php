@@ -69,7 +69,7 @@ class HandleInertiaRequests extends Middleware
      *
      * Only includes essential data: fetched_at, overall_experience, overall_level
      * Skills are included for last 30 days (needed for monthly views), and only essential fields (level, experience)
-     * Activities are only included for last 7 days, and only boss-related ones
+     * Activities are not included (boss functionality removed to reduce payload size)
      */
     protected function downsampleAndProcessStats($stats): array
     {
@@ -118,44 +118,6 @@ class HandleInertiaRequests extends Middleware
                         ];
                     }
                     $statData['skills'] = $essentialSkills;
-
-                    // Only include boss activities for last 7 days
-                    $activities = $stat->activities ?? [];
-                    $bossActivities = array_filter($activities, function ($activityName) {
-                        $lowerName = strtolower($activityName);
-
-                        return str_contains($lowerName, 'boss') ||
-                            str_contains($lowerName, 'kill') ||
-                            str_contains($lowerName, 'chest') ||
-                            str_contains($lowerName, 'chambers') ||
-                            str_contains($lowerName, 'theatre') ||
-                            str_contains($lowerName, 'inferno') ||
-                            str_contains($lowerName, 'gauntlet') ||
-                            str_contains($lowerName, 'nightmare') ||
-                            str_contains($lowerName, 'nex') ||
-                            str_contains($lowerName, 'zulrah') ||
-                            str_contains($lowerName, 'vorkath') ||
-                            str_contains($lowerName, 'cerberus') ||
-                            str_contains($lowerName, 'kraken') ||
-                            str_contains($lowerName, 'sire') ||
-                            str_contains($lowerName, 'hydra') ||
-                            str_contains($lowerName, 'barrows') ||
-                            str_contains($lowerName, 'corp') ||
-                            str_contains($lowerName, 'zilyana') ||
-                            str_contains($lowerName, 'bandos') ||
-                            str_contains($lowerName, 'armadyl') ||
-                            str_contains($lowerName, 'saradomin') ||
-                            str_contains($lowerName, 'zamorak');
-                    }, ARRAY_FILTER_USE_KEY);
-
-                    // Only include score, not rank, to reduce data size
-                    $bossActivitiesMinimal = [];
-                    foreach ($bossActivities as $activityName => $activityData) {
-                        $bossActivitiesMinimal[$activityName] = [
-                            'score' => $activityData['score'] ?? 0,
-                        ];
-                    }
-                    $statData['activities'] = $bossActivitiesMinimal;
                 }
 
                 $processed[] = $statData;
@@ -179,7 +141,7 @@ class HandleInertiaRequests extends Middleware
             foreach ($players as $player) {
                 $stats = PlayerStat::where('player_id', $player->id)
                     ->where('fetched_at', '>=', now()->subDays(90))
-                    ->select('skills', 'activities', 'fetched_at')
+                    ->select('skills', 'fetched_at')
                     ->orderBy('fetched_at', 'asc')
                     ->get();
 

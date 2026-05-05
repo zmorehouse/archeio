@@ -25,7 +25,6 @@ interface Player {
     overall_experience: number | null;
     last_updated?: string | null;
     skills?: Record<string, { rank: number; level: number; experience: number }>;
-    activities?: Record<string, { rank: number; score: number }>;
 }
 
 interface DashboardProps {
@@ -35,7 +34,6 @@ interface DashboardProps {
         overall_experience: number;
         overall_level: number;
         skills?: Record<string, { level: number; experience: number }>;
-        activities?: Record<string, { score: number }>;
     }>>;
 }
 

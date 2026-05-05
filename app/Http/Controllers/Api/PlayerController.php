@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Console\Commands\FetchPlayerStats;
 use App\Http\Controllers\Controller;
 use App\Models\Player;
 use App\Services\RuneScapeApiService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,7 +24,7 @@ class PlayerController extends Controller
         $players = Cache::remember('api.players', 600, function () {
             return Player::orderBy('name')->get();
         });
-        
+
         return response()->json([
             'data' => $players,
         ]);
@@ -38,7 +36,7 @@ class PlayerController extends Controller
     public function show(string $player): JsonResponse
     {
         $playerModel = Player::where('name', $player)->firstOrFail();
-        
+
         return response()->json([
             'data' => $playerModel,
         ]);
@@ -51,18 +49,18 @@ class PlayerController extends Controller
     public function stats(string $player): JsonResponse
     {
         $playerModel = Player::where('name', $player)->firstOrFail();
-        
+
         $cacheKey = "api.player.{$playerModel->id}.stats";
         $data = Cache::remember($cacheKey, 300, function () use ($playerModel) {
             return $this->runeScapeApiService->fetchPlayerData($playerModel->name);
         });
-        
+
         if ($data === null) {
             return response()->json([
                 'message' => 'Failed to fetch player data from RuneScape API',
             ], 503);
         }
-        
+
         return response()->json([
             'player' => $playerModel->name,
             'data' => $data,
@@ -81,13 +79,15 @@ class PlayerController extends Controller
 
             // Clear all relevant caches
             Cache::forget('dashboard.data');
+            Cache::forget('dashboard.historical_stats');
             Cache::forget('inertia.historical_stats');
             Cache::forget('inertia.players');
-            
+
             // Clear all player page caches
             $players = Player::all();
             foreach ($players as $player) {
                 Cache::forget("player.{$player->id}.data");
+                Cache::forget("player.{$player->id}.historical_stats");
                 Cache::forget("api.player.{$player->id}.stats");
             }
 

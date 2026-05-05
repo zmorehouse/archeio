@@ -1,6 +1,6 @@
 import { ActivityEvent } from '@/lib/activity-detector';
 import { getSkillIconPath } from '@/lib/runescape-utils';
-import { Trophy, TrendingUp, Award, Sword } from 'lucide-react';
+import { Trophy, TrendingUp, Award } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 function formatTimeAgo(date: Date): string {
@@ -101,8 +101,6 @@ export function ActivityLedger({ events, maxItems = 5, compact = false }: Activi
                 return <Award className="size-4 shrink-0" />;
             case 'total_level_milestone':
                 return <Trophy className="size-4 shrink-0" />;
-            case 'boss_kill':
-                return <Sword className="size-4 shrink-0" />;
             default:
                 return <TrendingUp className="size-4 shrink-0" />;
         }
@@ -116,8 +114,6 @@ export function ActivityLedger({ events, maxItems = 5, compact = false }: Activi
                 return 'text-green-600 dark:text-green-400';
             case 'total_level_milestone':
                 return 'text-yellow-600 dark:text-yellow-400';
-            case 'boss_kill':
-                return 'text-red-600 dark:text-red-400';
             default:
                 return 'text-neutral-600 dark:text-neutral-400';
         }

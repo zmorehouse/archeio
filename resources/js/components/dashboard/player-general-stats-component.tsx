@@ -6,14 +6,8 @@ interface Skill {
     experience: number;
 }
 
-interface Activity {
-    rank: number;
-    score: number;
-}
-
 interface PlayerGeneralStatsComponentProps {
     skills: Record<string, Skill>;
-    activities?: Record<string, Activity>;
     historicalStats?: Array<{
         fetched_at: string;
         overall_experience: number;
@@ -22,7 +16,7 @@ interface PlayerGeneralStatsComponentProps {
     }>;
 }
 
-export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerGeneralStatsComponentProps) {
+export function PlayerGeneralStatsComponent({ skills }: PlayerGeneralStatsComponentProps) {
     // Find closest to next level
     let closestNextLevel: { skill: string; currentLevel: number; nextLevel: number; xpRemaining: number } | null = null;
     let minXpRemaining = Infinity;
@@ -73,42 +67,6 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
         if (skill.level < minLevel) {
             minLevel = skill.level;
             lowestSkill = { name: skillName, level: skill.level };
-        }
-    });
-
-    // Find most killed boss (highest score in activities)
-    let mostKilledBoss: { name: string; score: number } | null = null;
-    let maxBossScore = 0;
-
-    Object.entries(activities).forEach(([activityName, activity]) => {
-        // Filter for boss activities (common boss names or activities with "kill" in them)
-        // Also check for common boss patterns
-        const isBoss = activityName.toLowerCase().includes('boss') ||
-            activityName.toLowerCase().includes('kill') ||
-            activityName.toLowerCase().includes('chest') ||
-            activityName.toLowerCase().includes('chambers') ||
-            activityName.toLowerCase().includes('theatre') ||
-            activityName.toLowerCase().includes('inferno') ||
-            activityName.toLowerCase().includes('gauntlet') ||
-            activityName.toLowerCase().includes('nightmare') ||
-            activityName.toLowerCase().includes('nex') ||
-            activityName.toLowerCase().includes('zulrah') ||
-            activityName.toLowerCase().includes('vorkath') ||
-            activityName.toLowerCase().includes('cerberus') ||
-            activityName.toLowerCase().includes('kraken') ||
-            activityName.toLowerCase().includes('sire') ||
-            activityName.toLowerCase().includes('hydra') ||
-            activityName.toLowerCase().includes('barrows') ||
-            activityName.toLowerCase().includes('corp') ||
-            activityName.toLowerCase().includes('zilyana') ||
-            activityName.toLowerCase().includes('bandos') ||
-            activityName.toLowerCase().includes('armadyl') ||
-            activityName.toLowerCase().includes('saradomin') ||
-            activityName.toLowerCase().includes('zamorak');
-
-        if (isBoss && activity.score > maxBossScore) {
-            maxBossScore = activity.score;
-            mostKilledBoss = { name: activityName, score: activity.score };
         }
     });
 
@@ -203,22 +161,6 @@ export function PlayerGeneralStatsComponent({ skills, activities = {} }: PlayerG
                     />
                     <span>
                         {lowestSkill.name} <span className="font-semibold text-orange-600 dark:text-orange-400">{lowestSkill.level}</span>
-                    </span>
-                </div>
-            ),
-        });
-    }
-
-    if (mostKilledBoss) {
-        stats.push({
-            label: 'Most Killed Boss',
-            value: (
-                <div className="flex items-center gap-2">
-                    <span className="font-semibold text-red-600 dark:text-red-400">
-                        {mostKilledBoss.name}
-                    </span>
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                        ({mostKilledBoss.score.toLocaleString()} kills)
                     </span>
                 </div>
             ),

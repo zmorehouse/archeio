@@ -1,6 +1,6 @@
 export interface ActivityEvent {
     id: string;
-    type: 'level_gain' | 'xp_milestone' | 'total_level_milestone' | 'boss_kill';
+    type: 'level_gain' | 'xp_milestone' | 'total_level_milestone';
     playerId: number;
     playerName: string;
     timestamp: Date;
@@ -9,7 +9,6 @@ export interface ActivityEvent {
     level?: number;
     xp?: number;
     totalLevel?: number;
-    bossName?: string;
 }
 
 interface HistoricalStat {
@@ -17,7 +16,6 @@ interface HistoricalStat {
     overall_experience: number;
     overall_level: number;
     skills?: Record<string, { rank?: number; level: number; experience: number }>; // Only included for last 7 days
-    activities?: Record<string, { score: number }>; // Only included for last 7 days, rank not needed
 }
 
 interface Player {
@@ -116,62 +114,6 @@ export function detectActivityEvents(
                     });
                 }
 
-                // Detect boss kills
-                const currentActivities = currentStat.activities || {};
-                const previousActivities = previousStat.activities || {};
-
-                // Check for boss activities that have increased
-                Object.keys(currentActivities).forEach(activityName => {
-                    const currentScore = currentActivities[activityName]?.score || 0;
-                    const previousScore = previousActivities[activityName]?.score || 0;
-
-                    if (currentScore > previousScore) {
-                        // Check if this is a boss activity
-                        const isBoss = activityName.toLowerCase().includes('boss') ||
-                            activityName.toLowerCase().includes('kill') ||
-                            activityName.toLowerCase().includes('chest') ||
-                            activityName.toLowerCase().includes('chambers') ||
-                            activityName.toLowerCase().includes('theatre') ||
-                            activityName.toLowerCase().includes('inferno') ||
-                            activityName.toLowerCase().includes('gauntlet') ||
-                            activityName.toLowerCase().includes('nightmare') ||
-                            activityName.toLowerCase().includes('nex') ||
-                            activityName.toLowerCase().includes('zulrah') ||
-                            activityName.toLowerCase().includes('vorkath') ||
-                            activityName.toLowerCase().includes('cerberus') ||
-                            activityName.toLowerCase().includes('kraken') ||
-                            activityName.toLowerCase().includes('sire') ||
-                            activityName.toLowerCase().includes('hydra') ||
-                            activityName.toLowerCase().includes('barrows') ||
-                            activityName.toLowerCase().includes('corp') ||
-                            activityName.toLowerCase().includes('zilyana') ||
-                            activityName.toLowerCase().includes('bandos') ||
-                            activityName.toLowerCase().includes('armadyl') ||
-                            activityName.toLowerCase().includes('saradomin') ||
-                            activityName.toLowerCase().includes('zamorak');
-
-                        if (isBoss) {
-                            const killCount = currentScore - previousScore;
-                            // Format boss name (capitalize first letter of each word)
-                            const bossName = activityName
-                                .split(/\s+/)
-                                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                                .join(' ');
-
-                            events.push({
-                                id: `${player.id}-boss-kill-${activityName}-${currentDate.getTime()}`,
-                                type: 'boss_kill',
-                                playerId: player.id,
-                                playerName: player.name,
-                                timestamp: currentDate,
-                                description: killCount === 1 
-                                    ? `killed ${bossName}` 
-                                    : `killed ${bossName} ${killCount} times`,
-                                bossName: bossName,
-                            });
-                        }
-                    }
-                });
             }
 
             previousStat = currentStat;

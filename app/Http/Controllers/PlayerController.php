@@ -18,7 +18,7 @@ class PlayerController extends Controller
      *
      * Only includes essential data: fetched_at, overall_experience, overall_level
      * Skills are included for last 30 days (needed for monthly views), and only essential fields (level, experience)
-     * Activities are only included for last 7 days, and only boss-related ones
+     * Activities are not included (boss functionality removed to reduce payload size)
      */
     protected function downsampleAndProcessStats($stats): array
     {
@@ -67,44 +67,6 @@ class PlayerController extends Controller
                         ];
                     }
                     $statData['skills'] = $essentialSkills;
-
-                    // Only include boss activities for last 7 days
-                    $activities = $stat->activities ?? [];
-                    $bossActivities = array_filter($activities, function ($activityName) {
-                        $lowerName = strtolower($activityName);
-
-                        return str_contains($lowerName, 'boss') ||
-                            str_contains($lowerName, 'kill') ||
-                            str_contains($lowerName, 'chest') ||
-                            str_contains($lowerName, 'chambers') ||
-                            str_contains($lowerName, 'theatre') ||
-                            str_contains($lowerName, 'inferno') ||
-                            str_contains($lowerName, 'gauntlet') ||
-                            str_contains($lowerName, 'nightmare') ||
-                            str_contains($lowerName, 'nex') ||
-                            str_contains($lowerName, 'zulrah') ||
-                            str_contains($lowerName, 'vorkath') ||
-                            str_contains($lowerName, 'cerberus') ||
-                            str_contains($lowerName, 'kraken') ||
-                            str_contains($lowerName, 'sire') ||
-                            str_contains($lowerName, 'hydra') ||
-                            str_contains($lowerName, 'barrows') ||
-                            str_contains($lowerName, 'corp') ||
-                            str_contains($lowerName, 'zilyana') ||
-                            str_contains($lowerName, 'bandos') ||
-                            str_contains($lowerName, 'armadyl') ||
-                            str_contains($lowerName, 'saradomin') ||
-                            str_contains($lowerName, 'zamorak');
-                    }, ARRAY_FILTER_USE_KEY);
-
-                    // Only include score, not rank, to reduce data size
-                    $bossActivitiesMinimal = [];
-                    foreach ($bossActivities as $activityName => $activityData) {
-                        $bossActivitiesMinimal[$activityName] = [
-                            'score' => $activityData['score'] ?? 0,
-                        ];
-                    }
-                    $statData['activities'] = $bossActivitiesMinimal;
                 }
 
                 $processed[] = $statData;
@@ -122,7 +84,7 @@ class PlayerController extends Controller
         $cacheKey = "player.{$playerModel->id}.data";
         $data = Cache::remember($cacheKey, 120, function () use ($playerModel) {
             $latestStat = PlayerStat::where('player_id', $playerModel->id)
-                ->select('skills', 'activities', 'fetched_at')
+                ->select('skills', 'fetched_at')
                 ->orderBy('fetched_at', 'desc')
                 ->first();
 
@@ -137,7 +99,6 @@ class PlayerController extends Controller
             }
 
             $skills = $latestStat->skills ?? [];
-            $activities = $latestStat->activities ?? [];
 
             // Only include essential skill data (level, experience, rank)
             $essentialSkills = [];
@@ -149,43 +110,6 @@ class PlayerController extends Controller
                 ];
             }
 
-            // Only include boss activities - keep rank for latest stats (needed for display)
-            $bossActivities = array_filter($activities, function ($activityName) {
-                $lowerName = strtolower($activityName);
-
-                return str_contains($lowerName, 'boss') ||
-                    str_contains($lowerName, 'kill') ||
-                    str_contains($lowerName, 'chest') ||
-                    str_contains($lowerName, 'chambers') ||
-                    str_contains($lowerName, 'theatre') ||
-                    str_contains($lowerName, 'inferno') ||
-                    str_contains($lowerName, 'gauntlet') ||
-                    str_contains($lowerName, 'nightmare') ||
-                    str_contains($lowerName, 'nex') ||
-                    str_contains($lowerName, 'zulrah') ||
-                    str_contains($lowerName, 'vorkath') ||
-                    str_contains($lowerName, 'cerberus') ||
-                    str_contains($lowerName, 'kraken') ||
-                    str_contains($lowerName, 'sire') ||
-                    str_contains($lowerName, 'hydra') ||
-                    str_contains($lowerName, 'barrows') ||
-                    str_contains($lowerName, 'corp') ||
-                    str_contains($lowerName, 'zilyana') ||
-                    str_contains($lowerName, 'bandos') ||
-                    str_contains($lowerName, 'armadyl') ||
-                    str_contains($lowerName, 'saradomin') ||
-                    str_contains($lowerName, 'zamorak');
-            }, ARRAY_FILTER_USE_KEY);
-
-            // Keep rank for latest stats (needed for display)
-            $bossActivitiesWithRank = [];
-            foreach ($bossActivities as $activityName => $activityData) {
-                $bossActivitiesWithRank[$activityName] = [
-                    'score' => $activityData['score'] ?? 0,
-                    'rank' => $activityData['rank'] ?? -1,
-                ];
-            }
-
             return [
                 'player' => [
                     'id' => $playerModel->id,
@@ -193,7 +117,6 @@ class PlayerController extends Controller
                 ],
                 'stats' => [
                     'skills' => $essentialSkills,
-                    'activities' => $bossActivitiesWithRank,
                     'fetched_at' => $latestStat->fetched_at->toIso8601String(),
                 ],
             ];
@@ -207,7 +130,7 @@ class PlayerController extends Controller
                 // Get historical stats for this player (last 90 days) with aggressive downsampling
                 $stats = PlayerStat::where('player_id', $playerModel->id)
                     ->where('fetched_at', '>=', now()->subDays(90))
-                    ->select('skills', 'activities', 'fetched_at')
+                    ->select('skills', 'fetched_at')
                     ->orderBy('fetched_at', 'asc')
                     ->get();
 
