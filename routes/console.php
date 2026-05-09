@@ -9,6 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('players:fetch-stats')
-    ->everyThirtyMinutes()
-    ->withoutOverlapping()
-    ->runInBackground();
+    ->cron('*/20 * * * *')
+    ->withoutOverlapping(10);
