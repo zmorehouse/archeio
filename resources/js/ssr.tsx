@@ -3,7 +3,11 @@ import createServer from '@inertiajs/react/server';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import ReactDOMServer from 'react-dom/server';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const envAppName = import.meta.env.VITE_APP_NAME;
+const appName =
+    typeof envAppName === 'string' && envAppName.length > 0 && !envAppName.includes('${')
+        ? envAppName
+        : 'Archeio';
 
 createServer((page) =>
     createInertiaApp({

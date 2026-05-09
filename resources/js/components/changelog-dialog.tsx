@@ -20,38 +20,34 @@ export function ChangelogDialog({ open, onOpenChange }: ChangelogDialogProps) {
 
     useEffect(() => {
         if (open) {
-            fetch('/api/changelog')
-                .then((res) => res.json())
-                .then((data) => {
-                    const content = data.content || '';
-                    // Strip the header lines: "# Changelog", blank line, and "All notable changes..." line
-                    const lines = content.split('\n');
-                    const filteredLines = lines.filter((line: string, index: number) => {
-                        // Skip first line if it's "# Changelog"
-                        if (index === 0 && line.trim() === '# Changelog') {
-                            return false;
-                        }
-                        // Skip the "All notable changes..." line
-                        if (line.includes('All notable changes to this project')) {
-                            return false;
-                        }
-                        // Skip the format reference lines if present
-                        if (line.includes('Keep a Changelog') || line.includes('Semantic Versioning')) {
-                            return false;
-                        }
-                        return true;
-                    });
-                    // Remove any leading blank lines
-                    while (filteredLines.length > 0 && filteredLines[0].trim() === '') {
-                        filteredLines.shift();
-                    }
-                    setChangelog(filteredLines.join('\n'));
-                    setLoading(false);
-                })
-                .catch(() => {
-                    setChangelog('Failed to load changelog.');
-                    setLoading(false);
-                });
+            const el = document.getElementById('changelog-markdown');
+            const content = el?.textContent ?? '';
+
+            // Strip the header lines: "# Changelog", blank line, and "All notable changes..." line
+            const lines = content.split('\n');
+            const filteredLines = lines.filter((line: string, index: number) => {
+                // Skip first line if it's "# Changelog"
+                if (index === 0 && line.trim() === '# Changelog') {
+                    return false;
+                }
+                // Skip the "All notable changes..." line
+                if (line.includes('All notable changes to this project')) {
+                    return false;
+                }
+                // Skip the format reference lines if present
+                if (line.includes('Keep a Changelog') || line.includes('Semantic Versioning')) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Remove any leading blank lines
+            while (filteredLines.length > 0 && filteredLines[0].trim() === '') {
+                filteredLines.shift();
+            }
+
+            setChangelog(filteredLines.join('\n'));
+            setLoading(false);
         }
     }, [open]);
 

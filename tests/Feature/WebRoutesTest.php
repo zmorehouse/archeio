@@ -8,6 +8,12 @@ test('home route returns successful response', function () {
     $response = $this->get('/');
 
     $response->assertStatus(200);
+
+    $appName = config('app.name', 'Archeio');
+    $response->assertSee('meta name="app-name"', false);
+    $response->assertSee('content="'.$appName.'"', false);
+
+    $response->assertSee('id="changelog-markdown"', false);
 });
 
 test('dashboard route returns successful response', function () {
@@ -29,4 +35,3 @@ test('player route returns 404 for non-existent player', function () {
 
     $response->assertStatus(404);
 });
-

@@ -6,7 +6,24 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Archeio';
+function resolveAppName(): string {
+    const fromVite = import.meta.env.VITE_APP_NAME;
+    if (typeof fromVite === 'string' && fromVite.length > 0 && !fromVite.includes('${')) {
+        return fromVite;
+    }
+
+    if (typeof document !== 'undefined') {
+        const meta = document.querySelector('meta[name="app-name"]');
+        const content = meta?.getAttribute('content');
+        if (content) {
+            return content;
+        }
+    }
+
+    return 'Archeio';
+}
+
+const appName = resolveAppName();
 
 // Filter out Inertia history encryption debug logs
 if (typeof window !== 'undefined') {

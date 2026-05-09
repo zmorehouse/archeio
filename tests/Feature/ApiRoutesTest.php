@@ -60,3 +60,9 @@ test('POST /api/v1/players/refresh initiates refresh', function () {
     expect($response->json())->toHaveKey('message');
 });
 
+test('GET /api/changelog returns changelog JSON', function () {
+    $response = $this->getJson('/api/changelog');
+
+    $response->assertSuccessful()
+        ->assertJsonStructure(['content']);
+});
