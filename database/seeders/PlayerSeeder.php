@@ -21,6 +21,7 @@ class PlayerSeeder extends Seeder
             'ThyJamison',
             'Chair_Bourne',
             'JoelizKewl',
+            'CrabDentist',
         ];
 
         foreach ($players as $playerName) {
